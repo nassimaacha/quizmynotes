@@ -1,5 +1,5 @@
-// Stétho: admin actions (approve accounts, extend trials, reset passwords, pilot stats).
-// Protected by ADMIN_PASSWORD. The page itself is stetho-admin.html, served at /admin.
+// QuizMyNotes: admin actions (approve accounts, extend trials, reset passwords, pilot stats).
+// Protected by ADMIN_PASSWORD. The page itself is quizmynotes-admin.html, served at /admin.
 import {
   db, pipe, hasDb, json, same, obj, getUser, cleanEmail, hashPw, tempPassword,
   endAllSessions, forgetUsage, lastDays, weekOf, DAY_MS, TRIAL_DAYS, DAILY_USER_USD, DAILY_TOTAL_USD

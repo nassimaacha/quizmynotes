@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/", "destination": "/stetho.html" },
-    { "source": "/admin", "destination": "/stetho-admin.html" }
+    { "source": "/", "destination": "/quizmynotes.html" },
+    { "source": "/admin", "destination": "/quizmynotes-admin.html" }
   ]
 }

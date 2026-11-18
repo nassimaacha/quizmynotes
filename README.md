@@ -1,15 +1,15 @@
-# Stétho
+# QuizMyNotes
 
 Test maker for medical lectures. Runs on Vercel, uses your Anthropic API key, with user accounts, manual approval and a free trial.
 
 ## Files
-stetho.html : the app (served at /)
-stetho-admin.html : your admin page (served at /admin)
+quizmynotes.html : the app (served at /)
+quizmynotes-admin.html : your admin page (served at /admin)
 api/claude.js : server function that holds the API key, checks the user's session, trial and daily caps
 api/auth.js : sign up, log in, log out
 api/admin.js : approve accounts, extend trials, reset passwords, pilot stats
 lib/store.js : shared code (database, passwords, sessions, usage)
-vercel.json : maps / to stetho.html and /admin to stetho-admin.html
+vercel.json : maps / to quizmynotes.html and /admin to quizmynotes-admin.html
 package.json, README.md
 
 ## How accounts work

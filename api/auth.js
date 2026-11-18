@@ -1,4 +1,4 @@
-// Stétho: sign up, log in, log out, and "who am I".
+// QuizMyNotes: sign up, log in, log out, and "who am I".
 // New accounts start as "pending" until approved on the admin page.
 import {
   db, pipe, hasDb, json, getUser, publicUser, hashPw, checkPw, cleanEmail, cleanName,

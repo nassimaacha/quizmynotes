@@ -1,4 +1,4 @@
-// Stétho: private proxy to the Anthropic API.
+// QuizMyNotes: private proxy to the Anthropic API.
 // Keeps the API key on the server, only answers logged in users with an active trial,
 // applies daily spending caps and records usage for the admin page.
 import {
