@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Stétho Tests</title>
+<title>QuizMyNotes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
@@ -321,6 +321,8 @@ p.q-text{font-family:var(--f-body);font-weight:500;font-size:18.5px;line-height:
 .tbadge.low{background:var(--warn-soft);color:var(--warn)}
 .tbadge.over{background:var(--bad-soft);color:var(--bad)}
 @media (max-width:600px){.uname{display:none}.ecg{display:none}}
+@media (max-width:380px){.mark{display:none}}
+@media (max-width:440px){.brand{gap:8px}.mark{width:30px;height:30px}.brand-name{font-size:18px}.top-actions{gap:6px}#loginBtn{padding:6px 10px;font-size:13px}.lang button{padding:5px 8px}}
 .busy{position:fixed;inset:0;background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:blur(3px);display:grid;place-items:center;z-index:40}
 .busy-box{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 24px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow);font-weight:500}
 .busy .spin{width:20px;height:20px}
@@ -333,12 +335,12 @@ p.q-text{font-family:var(--f-body);font-weight:500;font-size:18.5px;line-height:
 <body>
 <header class="top">
   <div class="wrap">
-    <a class="brand" href="#" id="homeLink" aria-label="Stétho">
+    <a class="brand" href="#" id="homeLink" aria-label="QuizMyNotes">
       <span class="mark" aria-hidden="true">
         <svg width="18" height="18" viewBox="0 0 18 18"><path d="M6.5 1.5h5v5h5v5h-5v5h-5v-5h-5v-5h5z" fill="#fff"/></svg>
       </span>
       <span>
-        <span class="brand-name">Stétho</span>
+        <span class="brand-name">QuizMyNotes</span>
         <svg class="ecg" width="118" height="12" viewBox="0 0 118 12" aria-hidden="true"><path d="M1 7h30l4-5 4 9 4-10 3 6h30l3-3 3 3h35"/><circle cx="43" cy="1.5" r="1.6"/></svg>
       </span>
     </a>
@@ -466,9 +468,9 @@ p.q-text{font-family:var(--f-body);font-weight:500;font-size:18.5px;line-height:
 </main>
 
 <div id="dlg" class="dlg" hidden><div class="dlg-box" role="dialog" aria-modal="true" aria-labelledby="dlgText"><p id="dlgText"></p><div id="dlgBtns" class="dlg-btns"></div></div></div>
-<div id="gate" class="dlg" hidden><div class="dlg-box auth" role="dialog" aria-modal="true" aria-label="Stétho">
+<div id="gate" class="dlg" hidden><div class="dlg-box auth" role="dialog" aria-modal="true" aria-label="QuizMyNotes">
   <div class="gate-head">
-    <div class="brand" style="pointer-events:none"><span class="mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M6.5 1.5h5v5h5v5h-5v5h-5v-5h-5v-5h5z" fill="#fff"/></svg></span><span class="brand-name">Stétho</span></div>
+    <div class="brand" style="pointer-events:none"><span class="mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M6.5 1.5h5v5h5v5h-5v5h-5v-5h-5v-5h5z" fill="#fff"/></svg></span><span class="brand-name">QuizMyNotes</span></div>
     <button type="button" id="gateClose" class="gate-x" aria-label="Fermer">×</button>
   </div>
   <p id="gateNote" class="subhint" hidden></p>
@@ -577,15 +579,15 @@ fr:{
   tabLogin:'Connexion', tabSignup:'Créer un compte', email:'Email', password:'Mot de passe', fullName:'Prénom et nom', pwHint:'8 caractères minimum',
   loginBtn:'Se connecter', signupBtn:'Demander un compte', logout:'Déconnexion', working:'Un instant…',
   forgotPw:'Mot de passe oublié ? Demande à la personne qui t’a invité de le réinitialiser.',
-  signupIntro:'Stétho est en test privé. Chaque compte est validé à la main.',
+  signupIntro:'QuizMyNotes est en test privé. Chaque compte est validé à la main.',
   pendingTitle:'Demande envoyée', pendingText:'Ton compte est en attente de validation. Tu pourras te connecter dès qu’il sera activé.', backLogin:'Retour à la connexion',
   aBadLogin:'Email ou mot de passe incorrect.', aPending:'Ton compte est encore en attente de validation.', aRefused:'Ta demande de compte n’a pas été acceptée.',
   aDisabled:'Ce compte est désactivé.', aExists:'Un compte existe déjà avec cet email. Connecte toi.', aBadEmail:'Email invalide.',
   aBadName:'Écris ton prénom et ton nom.', aBadPw:'Mot de passe trop court (8 caractères minimum).', aTooMany:'Trop de tentatives. Réessaie dans 15 minutes.',
   aClosed:'Les inscriptions sont fermées pour le moment.',
   trialLeft:'Essai : {n} j', trialLast:'Essai : dernier jour', trialEnded:'Essai terminé',
-  eTrialOver:'Ton mois d’essai gratuit est terminé. Contacte la personne qui t’a invité pour continuer à utiliser Stétho.',
-  eQuotaUser:'Tu as atteint ta limite de tests pour aujourd’hui. Reviens demain.', eQuotaGlobal:'Stétho a atteint sa limite du jour. Reviens demain.',
+  eTrialOver:'Ton mois d’essai gratuit est terminé. Contacte la personne qui t’a invité pour continuer à utiliser QuizMyNotes.',
+  eQuotaUser:'Tu as atteint ta limite de tests pour aujourd’hui. Reviens demain.', eQuotaGlobal:'QuizMyNotes a atteint sa limite du jour. Reviens demain.',
   eSessionOut:'Ta session a expiré. Reconnecte toi.',
   eNetwork:'Connexion impossible. Vérifie ton internet et réessaie.', eNoCredits:'Plus de crédits API. Il faut en recharger sur la console Anthropic.',
   eBadKey:'Clé API invalide. Vérifie ANTHROPIC_API_KEY sur Vercel.', eNotConfigured:'Site pas encore configuré : vérifie ANTHROPIC_API_KEY et la base Redis sur Vercel.',
@@ -664,15 +666,15 @@ en:{
   tabLogin:'Log in', tabSignup:'Create an account', email:'Email', password:'Password', fullName:'First and last name', pwHint:'At least 8 characters',
   loginBtn:'Log in', signupBtn:'Request an account', logout:'Log out', working:'One moment…',
   forgotPw:'Forgot your password? Ask the person who invited you to reset it.',
-  signupIntro:'Stétho is in private testing. Every account is approved by hand.',
+  signupIntro:'QuizMyNotes is in private testing. Every account is approved by hand.',
   pendingTitle:'Request sent', pendingText:'Your account is waiting for approval. You can log in as soon as it is activated.', backLogin:'Back to log in',
   aBadLogin:'Wrong email or password.', aPending:'Your account is still waiting for approval.', aRefused:'Your account request was not accepted.',
   aDisabled:'This account is disabled.', aExists:'An account already exists with this email. Log in instead.', aBadEmail:'Invalid email.',
   aBadName:'Write your first and last name.', aBadPw:'Password too short (at least 8 characters).', aTooMany:'Too many attempts. Try again in 15 minutes.',
   aClosed:'Sign ups are closed for now.',
   trialLeft:'Trial: {n} d', trialLast:'Trial: last day', trialEnded:'Trial ended',
-  eTrialOver:'Your free month is over. Contact the person who invited you to keep using Stétho.',
-  eQuotaUser:'You reached your test limit for today. Come back tomorrow.', eQuotaGlobal:'Stétho reached its limit for today. Come back tomorrow.',
+  eTrialOver:'Your free month is over. Contact the person who invited you to keep using QuizMyNotes.',
+  eQuotaUser:'You reached your test limit for today. Come back tomorrow.', eQuotaGlobal:'QuizMyNotes reached its limit for today. Come back tomorrow.',
   eSessionOut:'Your session expired. Log in again.',
   eNetwork:'Could not connect. Check your internet and try again.', eNoCredits:'Out of API credits. Top up in the Anthropic console.',
   eBadKey:'Invalid API key. Check ANTHROPIC_API_KEY on Vercel.', eNotConfigured:'Site not set up yet: check ANTHROPIC_API_KEY and the Redis database on Vercel.',
