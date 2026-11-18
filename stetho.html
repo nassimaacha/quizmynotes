@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stétho Tests</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: clinical white sheet on faint ECG grid paper; two setup panels, then one focused question card with a question map. */
+:root{
+  --bg:#F3F8FB;
+  --surface:#FFFFFF;
+  --ink:#0C2A3E;
+  --muted:#587285;
+  --line:#D9E6EE;
+  --blue:#1C63CC;
+  --green:#0B9470;
+  --blue-soft:#E7F0FC;
+  --green-soft:#E2F5EE;
+  --grid:rgba(11,148,112,.07);
+  --bad:#C2413A;
+  --bad-soft:#FBEBEA;
+  --warn:#B97C0B;
+  --warn-soft:#FBF2DF;
+  --shadow:0 1px 2px rgba(12,42,62,.06),0 8px 24px rgba(12,42,62,.06);
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:14px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#08161F;--surface:#0F2230;--ink:#E4EEF4;--muted:#8DA6B6;--line:#1E3646;
+    --blue:#6AA5F5;--green:#3CCB9E;--blue-soft:#11284A;--green-soft:#0D3029;--grid:rgba(60,203,158,.06);
+    --bad:#F07C74;--bad-soft:#3A1A1A;--warn:#E6B04A;--warn-soft:#33270F;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#08161F;--surface:#0F2230;--ink:#E4EEF4;--muted:#8DA6B6;--line:#1E3646;
+  --blue:#6AA5F5;--green:#3CCB9E;--blue-soft:#11284A;--green-soft:#0D3029;--grid:rgba(60,203,158,.06);
+  --bad:#F07C74;--bad-soft:#3A1A1A;--warn:#E6B04A;--warn-soft:#33270F;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{
+  background:var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;
+  color:var(--ink);font:16px/1.55 var(--f-body);
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--blue) 55%,transparent);outline-offset:2px;border-radius:8px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+
+/* header */
+.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}
+.mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--green));display:grid;place-items:center;box-shadow:var(--shadow)}
+.brand-name{font-family:var(--f-display);font-weight:800;font-size:22px;line-height:1}
+.brand-tag{font-size:12.5px;color:var(--muted);line-height:1.2;margin-top:3px}
+.ecg{display:block;margin-top:2px}
+.ecg path{stroke:var(--green);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.ecg circle{fill:var(--green);animation:beat 1.2s ease-in-out infinite}
+@keyframes beat{0%,100%{opacity:.35}12%{opacity:1}}
+.top-actions{display:flex;gap:8px;align-items:center}
+.lang{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface)}
+.lang button{border:0;background:none;padding:6px 12px;font:500 13px var(--f-mono);cursor:pointer;color:var(--muted)}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:11px;border:1px solid var(--line);background:var(--surface);padding:10px 16px;font-weight:600;cursor:pointer;transition:transform .12s,background .15s,border-color .15s;text-decoration:none;white-space:nowrap}
+.btn:hover{border-color:color-mix(in srgb,var(--blue) 40%,var(--line))}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.primary:hover{background:color-mix(in srgb,var(--blue) 88%,#000)}
+.btn.go{background:var(--green);border-color:var(--green);color:#fff}
+.btn.go:hover{background:color-mix(in srgb,var(--green) 88%,#000)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:7px 12px;font-size:14px;border-radius:9px}
+.btn.big{width:100%;padding:15px 18px;font-size:17px;border-radius:13px}
+.linkbtn{border:0;background:none;color:var(--muted);cursor:pointer;padding:4px 6px;font-size:13px;text-decoration:underline;text-underline-offset:3px}
+
+/* intro */
+.intro{padding:40px 0 22px;display:grid;gap:10px;max-width:720px}
+.intro h1{font-size:clamp(30px,4.4vw,46px);font-weight:800;line-height:1.05}
+.intro h1 em{font-style:normal;background:linear-gradient(90deg,var(--blue),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{margin:0;color:var(--muted);font-size:17px;max-width:62ch}
+.banner{margin:0 0 18px;padding:12px 16px;border-radius:12px;background:var(--warn-soft);color:var(--ink);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);font-size:15px}
+
+/* setup */
+.setup-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:20px;align-items:start}
+@media (max-width:860px){.setup-grid{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow);display:grid;gap:18px}
+.panel-head{display:flex;align-items:center;gap:12px}
+.step{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font:500 13px var(--f-mono);background:var(--blue-soft);color:var(--blue)}
+.panel:nth-child(2) .step{background:var(--green-soft);color:var(--green)}
+.panel h2{font-size:21px;font-weight:700}
+.drop{position:relative;display:grid;justify-items:center;gap:6px;text-align:center;padding:28px 16px;border:2px dashed color-mix(in srgb,var(--blue) 35%,var(--line));border-radius:14px;background:color-mix(in srgb,var(--blue-soft) 55%,var(--surface));cursor:pointer;transition:background .15s,border-color .15s}
+.drop:hover,.drop.over{border-color:var(--blue);background:var(--blue-soft)}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.drop strong{font-size:16.5px}
+.drop span{font-size:13.5px;color:var(--muted)}
+.drop svg{color:var(--blue)}
+.files{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.file{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 10px 10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.file.st-error{border-color:color-mix(in srgb,var(--bad) 45%,var(--line));background:var(--bad-soft)}
+.ficon{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;font:500 11px var(--f-mono);letter-spacing:.04em;color:#fff;background:var(--muted)}
+.ext-pdf{background:#C8473F}.ext-docx,.ext-odt,.ext-rtf{background:#2B66C2}.ext-pptx,.ext-odp{background:#D0662A}.ext-xlsx,.ext-csv{background:#1E8A55}.ext-img{background:#7A55C7}.ext-txt,.ext-md,.ext-html{background:#4E6878}
+.fname{font-weight:600;font-size:14.5px;overflow-wrap:anywhere;line-height:1.3}
+.fsub{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:2px}
+.fsub .err{color:var(--bad)}
+.tag{font:500 11px var(--f-mono);padding:2px 7px;border-radius:6px;background:var(--green-soft);color:var(--green);text-transform:uppercase;letter-spacing:.04em}
+.x{border:0;background:none;width:32px;height:32px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:15px}
+.x:hover{background:var(--bg);color:var(--ink)}
+.spin{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--blue);display:inline-block;animation:sp .8s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.meter{font-size:13.5px;color:var(--muted);display:grid;gap:6px}
+.meter .warnline{color:var(--warn)}
+
+fieldset{border:0;margin:0;padding:0;display:grid;gap:9px}
+legend,.field label{font-weight:600;font-size:14px;padding:0;margin-bottom:9px}
+.field{display:grid}
+.field label{margin-bottom:7px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px 8px 10px;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all .15s}
+.chip .box{width:18px;height:18px;border-radius:5px;border:1.5px solid color-mix(in srgb,var(--muted) 60%,transparent);display:grid;place-items:center;transition:all .15s}
+.chip[aria-pressed="true"]{border-color:var(--green);background:var(--green-soft);font-weight:600}
+.chip[aria-pressed="true"] .box{background:var(--green);border-color:var(--green)}
+.chip[aria-pressed="true"] .box::after{content:"";width:8px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+.seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px;flex-wrap:wrap}
+.seg button{flex:1;border:0;background:none;padding:8px 10px;border-radius:9px;cursor:pointer;font-weight:500;font-size:14.5px;color:var(--muted);min-width:44px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(12,42,62,.12)}
+.seg.num button{font-variant-numeric:tabular-nums;font-family:var(--f-mono);font-size:14px}
+.subhint{font-size:13px;color:var(--muted);margin:-2px 0 0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.switch{display:inline-flex;align-items:center;gap:9px;font-size:14px;cursor:pointer;user-select:none}
+.switch input{appearance:none;width:38px;height:22px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;transition:background .15s;margin:0}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .15s}
+.switch input:checked{background:var(--green)}
+.switch input:checked::after{transform:translateX(16px)}
+.switch input:disabled{opacity:.45}
+input[type=text],input[type=email],input[type=password],select,textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:11px 13px;font-size:15px;outline:none;transition:border-color .15s,box-shadow .15s}
+input[type=text]:focus,input[type=email]:focus,input[type=password]:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 18%,transparent)}
+textarea{resize:vertical;line-height:1.55}
+.hint{font-size:13.5px;color:var(--muted);margin:-8px 0 0;text-align:center;min-height:1em}
+
+.gen{margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px 22px;box-shadow:var(--shadow);display:grid;gap:12px}
+.gen-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.gen-title{font-weight:600;display:flex;align-items:center;gap:10px}
+.bar{height:8px;border-radius:99px;background:var(--bg);overflow:hidden;border:1px solid var(--line)}
+.bar>div{height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:99px;transition:width .4s}
+.bar.indet>div{width:35%!important;animation:indet 1.4s ease-in-out infinite}
+@keyframes indet{0%{transform:translateX(-100%)}100%{transform:translateX(300%)}}
+.gen-sub{font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.history{margin:34px 0 10px;display:grid;gap:14px}
+.history h2{font-size:20px}
+.hlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.hcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:10px}
+.hcard .ht{font-weight:600;line-height:1.3}
+.hcard .hm{font-size:13px;color:var(--muted)}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.grade{font:500 14px var(--f-mono);padding:4px 9px;border-radius:8px;font-variant-numeric:tabular-nums}
+.g-good{background:var(--green-soft);color:var(--green)}.g-mid{background:var(--blue-soft);color:var(--blue)}.g-low{background:var(--bad-soft);color:var(--bad)}
+.empty{color:var(--muted);font-size:14.5px;margin:0}
+footer{padding:30px 0 40px;color:var(--muted);font-size:13px}
+
+/* test */
+.testbar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 0 12px;flex-wrap:wrap}
+.tb-left{display:flex;align-items:center;gap:14px;min-width:0}
+.tb-title{font-family:var(--f-display);font-weight:700;font-size:20px;line-height:1.2}
+.tb-meta{font-size:13px;color:var(--muted)}
+.tb-right{display:flex;gap:10px;align-items:center}
+.timer{font:500 15px var(--f-mono);padding:7px 12px;border-radius:9px;background:var(--surface);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+.timer.low{color:var(--bad);border-color:var(--bad);background:var(--bad-soft)}
+.progress{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:18px}
+.progress>div{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));width:0;transition:width .3s}
+.test-grid{display:grid;grid-template-columns:1fr 250px;gap:20px;align-items:start;padding-bottom:40px}
+@media (max-width:860px){.test-grid{grid-template-columns:1fr}.qmap-wrap{order:-1}}
+.qcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:var(--shadow);display:grid;gap:18px;min-width:0}
+@media (max-width:500px){.qcard{padding:18px}}
+.q-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.q-num{font:500 13px var(--f-mono);color:var(--muted);margin-right:4px}
+.pill{font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--blue-soft);color:var(--blue)}
+.pill.soft{background:var(--bg);color:var(--muted);font-weight:500;border:1px solid var(--line)}
+.pts{margin-left:auto;font:500 12.5px var(--f-mono);color:var(--muted)}
+.context{border-left:4px solid var(--green);background:var(--green-soft);padding:14px 16px;border-radius:0 12px 12px 0}
+.ctx-label{font:500 11.5px var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--green);margin-bottom:4px}
+.context p{margin:0}
+.q-text{font-size:21px;line-height:1.35;font-weight:600}
+p.q-text{font-family:var(--f-body);font-weight:500;font-size:18.5px;line-height:2.1;margin:0}
+.blank{display:inline-block;width:auto;min-width:9ch;max-width:100%;padding:3px 9px!important;margin:0 3px;border-radius:8px!important;font-size:16px!important;border:1.5px solid color-mix(in srgb,var(--blue) 40%,var(--line))!important;background:var(--blue-soft)!important;line-height:1.4}
+.blank.ok{border-color:var(--green)!important;background:var(--green-soft)!important}
+.blank.ko{border-color:var(--bad)!important;background:var(--bad-soft)!important}
+.ahint{font-size:13.5px;color:var(--muted);margin:-6px 0 -4px}
+.opts{display:grid;gap:9px}
+.opt{display:grid;grid-template-columns:auto 1fr auto;gap:13px;align-items:center;text-align:left;width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:13px;background:var(--surface);cursor:pointer;transition:border-color .12s,background .12s;font-size:16px;line-height:1.4}
+.opt:hover:not([disabled]){border-color:color-mix(in srgb,var(--blue) 45%,var(--line))}
+.letter{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font:500 13px var(--f-mono);background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+.multi .letter{border-radius:7px}
+.opt.sel{border-color:var(--blue);background:var(--blue-soft)}
+.opt.sel .letter{background:var(--blue);border-color:var(--blue);color:#fff}
+.opt[disabled]{cursor:default}
+.opt.right{border-color:var(--green);background:var(--green-soft)}
+.opt.right .letter{background:var(--green);border-color:var(--green);color:#fff}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .letter{background:var(--bad);border-color:var(--bad);color:#fff}
+.opt.miss{border-style:dashed;border-color:var(--green)}
+.omark{font-weight:700;font-size:15px}
+.opt.right .omark{color:var(--green)}.opt.wrong .omark{color:var(--bad)}
+.fb{border-radius:14px;padding:16px 18px;display:grid;gap:10px;border:1px solid var(--line);background:var(--bg)}
+.fb p{margin:0}
+.fb-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.fb-top strong{font-family:var(--f-display);font-size:18px}
+.fb-correct{background:var(--green-soft);border-color:color-mix(in srgb,var(--green) 35%,transparent)}.fb-correct .fb-top strong{color:var(--green)}
+.fb-partial{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 35%,transparent)}.fb-partial .fb-top strong{color:var(--warn)}
+.fb-incorrect,.fb-empty{background:var(--bad-soft);border-color:color-mix(in srgb,var(--bad) 30%,transparent)}.fb-incorrect .fb-top strong,.fb-empty .fb-top strong{color:var(--bad)}
+.fb-ungraded .fb-top strong{color:var(--muted)}
+.fb-score{font:500 14px var(--f-mono);font-variant-numeric:tabular-nums}
+.fb-note{font-size:14px;color:var(--muted)}
+.model{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 14px;white-space:pre-wrap;font-size:15px}
+.model-l{font:500 11.5px var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:block;margin-bottom:4px}
+.src{margin:0;padding:10px 14px;border-left:3px solid var(--blue);background:var(--surface);border-radius:0 10px 10px 0;font-style:italic;font-size:14.5px;color:var(--ink)}
+.src span{display:block;font:500 11px var(--f-mono);font-style:normal;text-transform:uppercase;letter-spacing:.06em;color:var(--blue);margin-bottom:3px}
+.q-nav{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-top:4px}
+.q-nav .right{display:flex;gap:10px;margin-left:auto}
+.qmap-wrap{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:12px;position:sticky;top:80px}
+@media (max-width:860px){.qmap-wrap{position:static}}
+.qmap-wrap h3{font-family:var(--f-body);font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.qmap{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:6px}
+.qdot{height:36px;border-radius:9px;border:1px solid var(--line);background:var(--bg);font:500 13px var(--f-mono);cursor:pointer;color:var(--muted);font-variant-numeric:tabular-nums}
+.qdot.ans{background:var(--blue-soft);color:var(--blue);border-color:color-mix(in srgb,var(--blue) 40%,var(--line))}
+.qdot.v-correct{background:var(--green);color:#fff;border-color:var(--green)}
+.qdot.v-partial{background:var(--warn);color:#fff;border-color:var(--warn)}
+.qdot.v-incorrect,.qdot.v-empty{background:var(--bad);color:#fff;border-color:var(--bad)}
+.qdot.cur{outline:2px solid var(--ink);outline-offset:1px}
+.legend{display:grid;gap:5px;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+/* results */
+.res{padding:26px 0 50px;display:grid;gap:20px}
+.res-hero{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:26px;box-shadow:var(--shadow);display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center}
+@media (max-width:640px){.res-hero{grid-template-columns:1fr;justify-items:center;text-align:center}}
+.ring{position:relative;width:170px;height:170px}
+.ring svg{transform:rotate(-90deg)}
+.ring .val{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring .big{font-family:var(--f-display);font-weight:800;font-size:46px;line-height:1;font-variant-numeric:tabular-nums}
+.ring .small{font:500 14px var(--f-mono);color:var(--muted)}
+.res-info{display:grid;gap:12px}
+.res-info h2{font-size:30px;font-weight:800}
+.res-sub{color:var(--muted);margin:0}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+@media (max-width:640px){.stats{justify-content:center}}
+.stat{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:9px 14px}
+.stat b{display:block;font:500 18px var(--f-mono);font-variant-numeric:tabular-nums}
+.stat span{font-size:12.5px;color:var(--muted)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+@media (max-width:640px){.actions{justify-content:center}}
+.break{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:760px){.break{grid-template-columns:1fr}}
+.bcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;display:grid;gap:12px;align-content:start}
+.bcard h3{font-size:17px}
+.bcard .note{font-size:12.5px;color:var(--muted);margin:-8px 0 0}
+.brow{display:grid;grid-template-columns:minmax(0,1fr) 110px 46px;gap:10px;align-items:center;font-size:14px}
+.brow .bl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btrack{height:8px;background:var(--bg);border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.btrack div{height:100%;border-radius:99px}
+.brow .bp{font:500 13px var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.review{display:grid;gap:10px}
+.review h3{font-size:20px;margin-bottom:4px}
+.ritem{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.ritem summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto auto 1fr auto;gap:12px;align-items:center;padding:13px 16px}
+.ritem summary::-webkit-details-marker{display:none}
+.rdot{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff}
+.rd-correct{background:var(--green)}.rd-partial{background:var(--warn)}.rd-incorrect,.rd-empty{background:var(--bad)}.rd-ungraded{background:var(--muted)}
+.rn{font:500 13px var(--f-mono);color:var(--muted)}
+.rq{font-weight:500;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.rs{font:500 13px var(--f-mono);color:var(--muted);white-space:nowrap}
+.rbody{padding:0 16px 16px;display:grid;gap:10px;font-size:15px}
+.rbody p{margin:0}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:4px 12px}
+@media (max-width:500px){.kv{grid-template-columns:1fr}}
+.kv dt{font-size:13px;color:var(--muted);font-weight:600}
+.kv dd{margin:0;white-space:pre-wrap}
+
+/* dialog + toast + busy */
+.dlg{position:fixed;inset:0;background:rgba(8,22,31,.45);display:grid;place-items:center;z-index:50;padding:20px}
+.dlg-box{background:var(--surface);border-radius:18px;padding:22px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25);display:grid;gap:18px}
+.dlg-box p{margin:0;font-size:16px}
+.dlg-btns{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.gate-err{color:var(--bad);font-size:14px;min-height:1em;margin:-4px 0 0!important}
+#gate{background:var(--bg);overflow:auto}
+.auth{gap:16px}
+.aform{display:grid;gap:12px}
+.afield{display:grid;gap:6px;font-weight:600;font-size:14px}
+.afield small{font-weight:400;color:var(--muted);font-size:12.5px}
+.pending{display:grid;gap:10px;justify-items:start;padding:16px;border-radius:12px;background:var(--green-soft);border:1px solid color-mix(in srgb,var(--green) 35%,transparent)}
+.pending strong{font-family:var(--f-display);font-size:18px;color:var(--green)}
+.pending p{margin:0;font-size:15px}
+.userbox{display:flex;align-items:center;gap:8px;font-size:13.5px}
+.uname{font-weight:600;max-width:16ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tbadge{font:500 12px var(--f-mono);padding:4px 9px;border-radius:999px;background:var(--green-soft);color:var(--green);white-space:nowrap}
+.tbadge.low{background:var(--warn-soft);color:var(--warn)}
+.tbadge.over{background:var(--bad-soft);color:var(--bad)}
+@media (max-width:600px){.uname{display:none}.ecg{display:none}}
+.busy{position:fixed;inset:0;background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:blur(3px);display:grid;place-items:center;z-index:40}
+.busy-box{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 24px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow);font-weight:500}
+.busy .spin{width:20px;height:20px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--surface);padding:11px 18px;border-radius:12px;font-size:14.5px;opacity:0;pointer-events:none;transition:all .25s;z-index:60;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#" id="homeLink" aria-label="Stétho">
+      <span class="mark" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path d="M6.5 1.5h5v5h5v5h-5v5h-5v-5h-5v-5h5z" fill="#fff"/></svg>
+      </span>
+      <span>
+        <span class="brand-name">Stétho</span>
+        <svg class="ecg" width="118" height="12" viewBox="0 0 118 12" aria-hidden="true"><path d="M1 7h30l4-5 4 9 4-10 3 6h30l3-3 3 3h35"/><circle cx="43" cy="1.5" r="1.6"/></svg>
+      </span>
+    </a>
+    <div class="top-actions">
+      <div id="userBox" class="userbox" hidden>
+        <span id="userName" class="uname"></span>
+        <span id="trialBadge" class="tbadge"></span>
+        <button type="button" id="logoutBtn" class="linkbtn" data-i18n="logout"></button>
+      </div>
+      <div class="lang" role="group" aria-label="Langue / Language">
+        <button type="button" id="langFr" aria-pressed="true">FR</button>
+        <button type="button" id="langEn" aria-pressed="false">EN</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- SETUP -->
+  <section id="view-setup">
+    <div class="intro">
+      <h1 id="heroTitle"></h1>
+      <p class="lede" data-i18n="heroSub"></p>
+    </div>
+    <div id="sampleBanner" class="banner" hidden data-i18n="noSample"></div>
+    <div id="trialBanner" class="banner" hidden data-i18n="eTrialOver"></div>
+    <div class="setup-grid">
+      <div class="panel">
+        <div class="panel-head"><span class="step">1</span><h2 data-i18n="step1"></h2></div>
+        <label id="drop" class="drop" for="fileInput">
+          <input id="fileInput" type="file" multiple accept=".pdf,.docx,.pptx,.xlsx,.odt,.odp,.txt,.md,.csv,.rtf,.html,.htm,.jpg,.jpeg,.png,.webp,.gif,.heic,.heif,image/*">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 17v-6"/><path d="m9.5 13.5 2.5-2.5 2.5 2.5"/></svg>
+          <strong data-i18n="dropTitle"></strong>
+          <span data-i18n="dropSub"></span>
+        </label>
+        <ul id="fileList" class="files"></ul>
+        <div id="meter" class="meter"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span class="step">2</span><h2 data-i18n="step2"></h2></div>
+        <fieldset>
+          <legend data-i18n="types"></legend>
+          <div id="typeChips" class="chips"></div>
+        </fieldset>
+        <fieldset>
+          <legend data-i18n="count"></legend>
+          <div id="segCount" class="seg num" role="group"></div>
+        </fieldset>
+        <fieldset>
+          <legend data-i18n="difficulty"></legend>
+          <div id="segDiff" class="seg" role="group"></div>
+        </fieldset>
+        <fieldset>
+          <legend data-i18n="mode"></legend>
+          <div id="segMode" class="seg" role="group"></div>
+          <p id="modeHint" class="subhint"></p>
+          <label class="switch" for="timerToggle"><input type="checkbox" id="timerToggle"><span id="timerLabel"></span></label>
+        </fieldset>
+        <div class="field">
+          <label for="focus" data-i18n="focus"></label>
+          <input type="text" id="focus" data-i18n-ph="focusPh" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="qlang" data-i18n="qlang"></label>
+          <select id="qlang">
+            <option value="auto" data-i18n="qlAuto"></option>
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+        <button type="button" id="genBtn" class="btn primary big">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+          <span data-i18n="generate"></span>
+        </button>
+        <p id="genHint" class="hint"></p>
+      </div>
+    </div>
+
+    <div id="gen" class="gen" hidden>
+      <div class="gen-top">
+        <div class="gen-title"><span class="spin"></span><span id="genText"></span></div>
+        <button type="button" id="stopBtn" class="btn sm ghost" data-i18n="stop"></button>
+      </div>
+      <div id="genBar" class="bar indet"><div></div></div>
+      <div id="genSub" class="gen-sub"></div>
+    </div>
+
+    <section class="history" id="historyWrap">
+      <h2 data-i18n="recent"></h2>
+      <div id="historyList" class="hlist"></div>
+    </section>
+    <footer data-i18n="footer"></footer>
+  </section>
+
+  <!-- TEST -->
+  <section id="view-test" hidden>
+    <div class="testbar">
+      <div class="tb-left">
+        <button type="button" id="quitBtn" class="btn sm ghost"><span aria-hidden="true">←</span> <span data-i18n="quit"></span></button>
+        <div style="min-width:0">
+          <div class="tb-title" id="testTitle"></div>
+          <div class="tb-meta" id="testMeta"></div>
+        </div>
+      </div>
+      <div class="tb-right">
+        <div id="timer" class="timer" hidden></div>
+        <button type="button" id="finishBtn" class="btn sm go"></button>
+      </div>
+    </div>
+    <div class="progress"><div id="progBar"></div></div>
+    <div class="test-grid">
+      <article id="qCard" class="qcard" aria-live="polite"></article>
+      <aside class="qmap-wrap">
+        <h3 data-i18n="questions"></h3>
+        <div id="qMap" class="qmap"></div>
+        <div id="legend" class="legend"></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="view-results" hidden>
+    <div class="res" id="resBody"></div>
+  </section>
+</main>
+
+<div id="dlg" class="dlg" hidden><div class="dlg-box" role="dialog" aria-modal="true" aria-labelledby="dlgText"><p id="dlgText"></p><div id="dlgBtns" class="dlg-btns"></div></div></div>
+<div id="gate" class="dlg" hidden><div class="dlg-box auth" role="dialog" aria-modal="true" aria-label="Stétho">
+  <div class="brand" style="pointer-events:none"><span class="mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M6.5 1.5h5v5h5v5h-5v5h-5v-5h-5v-5h5z" fill="#fff"/></svg></span><span class="brand-name">Stétho</span></div>
+  <div id="authTabs" class="seg" role="group">
+    <button type="button" data-tab="login" aria-pressed="true" data-i18n="tabLogin"></button>
+    <button type="button" data-tab="signup" aria-pressed="false" data-i18n="tabSignup"></button>
+  </div>
+  <form id="loginForm" class="aform" autocomplete="on">
+    <label class="afield"><span data-i18n="email"></span><input type="email" id="loginEmail" autocomplete="username" required></label>
+    <label class="afield"><span data-i18n="password"></span><input type="password" id="loginPw" autocomplete="current-password" required></label>
+    <p id="loginErr" class="gate-err" role="alert"></p>
+    <button type="submit" class="btn primary big" data-i18n="loginBtn"></button>
+    <p class="subhint" data-i18n="forgotPw"></p>
+  </form>
+  <form id="signupForm" class="aform" autocomplete="on" hidden>
+    <p class="subhint" data-i18n="signupIntro"></p>
+    <label class="afield"><span data-i18n="fullName"></span><input type="text" id="suName" autocomplete="name" maxlength="60" required></label>
+    <label class="afield"><span data-i18n="email"></span><input type="email" id="suEmail" autocomplete="email" maxlength="120" required></label>
+    <label class="afield"><span data-i18n="password"></span><input type="password" id="suPw" autocomplete="new-password" minlength="8" required><small data-i18n="pwHint"></small></label>
+    <p id="signupErr" class="gate-err" role="alert"></p>
+    <button type="submit" class="btn go big" data-i18n="signupBtn"></button>
+  </form>
+  <div id="pendingBox" class="pending" hidden>
+    <strong data-i18n="pendingTitle"></strong>
+    <p data-i18n="pendingText"></p>
+    <button type="button" class="btn sm" id="backToLogin" data-i18n="backLogin"></button>
+  </div>
+</div></div>
+<div id="busy" class="busy" hidden><div class="busy-box"><span class="spin"></span><span id="busyText"></span></div></div>
+<div id="toast" class="toast" role="status"></div>
+
+<script>
+"use strict";
+/* ---------- strings ---------- */
+const I18N = {
+fr:{
+  heroTitle:'Transforme tes cours en <em>test</em>.',
+  heroSub:'Dépose tes PDF, Word, PowerPoint ou photos de notes, choisis tes types de questions. Claude écrit un test tiré uniquement de tes documents, puis te corrige.',
+  noSample:'Ouvre cette page dans Claude (claude.ai ou l’application) pour générer des tests. Elle utilise ton propre compte Claude.',
+  step1:'Tes cours', step2:'Ton test',
+  dropTitle:'Dépose tes fichiers ici', dropSub:'ou clique pour choisir · PDF, Word, PowerPoint, Excel, texte, photos',
+  types:'Types de questions', count:'Nombre de questions', difficulty:'Difficulté',
+  dEasy:'Facile', dMid:'Moyen', dHard:'Niveau examen',
+  mode:'Mode', mPractice:'Entraînement', mExam:'Examen',
+  mPracticeHint:'Correction après chaque question.', mExamHint:'Comme le jour J : correction à la fin.',
+  timer:'Chronométré', timerOff:'Chronomètre disponible en mode Examen',
+  focus:'Cibler un chapitre ou une notion', focusPh:'optionnel · ex. valves cardiaques, ECG',
+  qlang:'Langue des questions', qlAuto:'Même langue que le cours',
+  generate:'Générer le test', needFiles:'Ajoute au moins un cours prêt.', waitFiles:'Attends la fin de la lecture des fichiers.',
+  reading:'Lecture…', example:'Exemple', exampleName:'Cycle cardiaque (exemple).txt',
+  pages:'pages', slides:'diapos', chars:'caractères', imgs:'images',
+  scanned:'PDF scanné, lu en images',
+  eOld:'Ancien format. Enregistre le fichier en .docx, .pptx ou PDF.',
+  eMedia:'Vidéos et audios non pris en charge.',
+  eRead:'Impossible de lire ce fichier.', eEmpty:'Aucun texte trouvé dans ce fichier.',
+  eHeic:'Photo illisible ici. Convertis la en JPG.', eType:'Type de fichier non pris en charge.',
+  eLib:'Lecteur de fichiers indisponible. Vérifie ta connexion et réessaie.',
+  meterTotal:'{c} caractères · {i} images au total',
+  meterLong:'Tes documents sont longs : Claude lira des extraits répartis sur tout le contenu. Cible un chapitre pour aller plus en profondeur.',
+  imgsCapped:'Seules les {n} premières images seront lues.',
+  imgsNo:'Les images ne peuvent pas être envoyées depuis cette vue : seules les parties texte seront lues.',
+  genReading:'Claude lit tes cours…', genWriting:'Claude écrit les questions',
+  genSub:'{a} / {b} questions écrites', genBatch:'partie {a} sur {b}',
+  stop:'Arrêter', recent:'Tests récents', noHistory:'Tes tests terminés apparaîtront ici.',
+  retake:'Refaire', del:'Supprimer', questions:'Questions',
+  question:'Question', caseLabel:'Cas clinique',
+  multiHint:'Une ou plusieurs réponses justes.', singleHint:'Une seule réponse juste.',
+  writePh:'Écris ta réponse…',
+  prev:'Précédente', next:'Suivante', check:'Vérifier', seeResult:'Voir mon résultat', hand:'Rendre la copie', finish:'Terminer', quit:'Quitter',
+  vCorrect:'Juste', vPartial:'Partiellement juste', vIncorrect:'Faux', vEmpty:'Sans réponse', vUngraded:'Non corrigée',
+  why:'Explication', fromCourse:'Dans ton cours', missing:'Il manquait :', modelAnswer:'Réponse attendue', expected:'Réponse attendue :',
+  disc1:'1 discordance : la moitié des points.', discN:'{n} discordances : 0 point.',
+  grading:'Correction en cours…', gradingOpen:'Claude corrige tes réponses rédigées…',
+  quitConfirm:'Quitter ce test ? Tes réponses seront perdues.', cancel:'Annuler',
+  unanswered:'{n} question(s) sans réponse. Rendre la copie quand même ?', handYes:'Rendre',
+  finishPractice:'Terminer maintenant ? Les questions non vérifiées seront corrigées.',
+  timeUp:'Temps écoulé, copie rendue.',
+  outOf:'sur 20', correctCount:'justes', pointsL:'points', timeL:'temps',
+  lvl16:'Excellent', lvl12:'Bien', lvl10:'Moyenne atteinte', lvl0:'À retravailler',
+  byTopic:'Par notion', byTopicNote:'Tes points faibles en premier.', byKind:'Par type de question',
+  review:'Correction détaillée',
+  retakeErrors:'Refaire mes erreurs', retakeAll:'Refaire le test', newTest:'Nouveau test', copyTest:'Copier le test',
+  copied:'Test copié avec son corrigé.', copyFail:'Copie impossible ici.',
+  errorsSuffix:'erreurs', noErrors:'Aucune erreur à refaire. Bravo !',
+  answerKey:'Corrigé', noAnswer:'Pas de réponse', yourAns:'Ta réponse', goodAns:'Bonne réponse',
+  legAns:'Répondue', legOk:'Juste', legPart:'Partielle', legBad:'Fausse',
+  practiceL:'Entraînement', examL:'Examen',
+  eNotGranted:'L’accès à Claude a été refusé pour cette page. Recharge la page pour réessayer.',
+  eDisabled:'Claude n’est pas disponible sur ce compte.',
+  eRate:'Limite d’utilisation atteinte. Réessaie dans un moment.',
+  eSession:'Ta session a expiré. Reconnecte toi à Claude.',
+  eTooLarge:'Trop de contenu d’un coup. Retire un fichier ou cible un chapitre.',
+  eRefused:'Claude n’a pas pu traiter ce contenu.',
+  eJson:'La réponse de Claude était incomplète. Réessaie ou demande moins de questions.',
+  eImage:'Une image n’a pas été acceptée. Essaie une autre photo.',
+  eGeneric:'Un problème est survenu. Réessaie.',
+  eNoQ:'Aucune question exploitable. Réessaie.',
+  retry:'Réessayer', skipGrade:'Voir sans correction',
+  partial:'Test partiel : {n} questions reçues.',
+  footer:'Les questions viennent uniquement de tes documents. En cas de doute, ton cours fait foi.',
+  pt:'pt', pts:'pts', min:'min',
+  k_qcm:'QCM (une réponse)', k_qcm_multi:'QCM (une ou plusieurs réponses)', k_vf:'Vrai / Faux', k_trous:'Texte à trous', k_courte:'Réponse courte', k_redaction:'Question rédactionnelle', k_cas:'Cas clinique',
+  ks_qcm:'QCM', ks_qcm_multi:'QCM', ks_vf:'Vrai / Faux', ks_trous:'À trous', ks_courte:'Courte', ks_redaction:'Rédaction', ks_cas:'Cas clinique',
+  vTrue:'Vrai', vFalse:'Faux',
+  tabLogin:'Connexion', tabSignup:'Créer un compte', email:'Email', password:'Mot de passe', fullName:'Prénom et nom', pwHint:'8 caractères minimum',
+  loginBtn:'Se connecter', signupBtn:'Demander un compte', logout:'Déconnexion', working:'Un instant…',
+  forgotPw:'Mot de passe oublié ? Demande à la personne qui t’a invité de le réinitialiser.',
+  signupIntro:'Stétho est en test privé. Chaque compte est validé à la main, puis tu as 1 mois d’essai gratuit.',
+  pendingTitle:'Demande envoyée', pendingText:'Ton compte est en attente de validation. Tu pourras te connecter dès qu’il sera activé.', backLogin:'Retour à la connexion',
+  aBadLogin:'Email ou mot de passe incorrect.', aPending:'Ton compte est encore en attente de validation.', aRefused:'Ta demande de compte n’a pas été acceptée.',
+  aDisabled:'Ce compte est désactivé.', aExists:'Un compte existe déjà avec cet email. Connecte toi.', aBadEmail:'Email invalide.',
+  aBadName:'Écris ton prénom et ton nom.', aBadPw:'Mot de passe trop court (8 caractères minimum).', aTooMany:'Trop de tentatives. Réessaie dans 15 minutes.',
+  aClosed:'Les inscriptions sont fermées pour le moment.',
+  trialLeft:'Essai : {n} j', trialLast:'Essai : dernier jour', trialEnded:'Essai terminé',
+  eTrialOver:'Ton mois d’essai gratuit est terminé. Contacte la personne qui t’a invité pour continuer à utiliser Stétho.',
+  eQuotaUser:'Tu as atteint ta limite de tests pour aujourd’hui. Reviens demain.', eQuotaGlobal:'Stétho a atteint sa limite du jour. Reviens demain.',
+  eSessionOut:'Ta session a expiré. Reconnecte toi.',
+  eNetwork:'Connexion impossible. Vérifie ton internet et réessaie.', eNoCredits:'Plus de crédits API. Il faut en recharger sur la console Anthropic.',
+  eBadKey:'Clé API invalide. Vérifie ANTHROPIC_API_KEY sur Vercel.', eNotConfigured:'Site pas encore configuré : vérifie ANTHROPIC_API_KEY et la base Redis sur Vercel.',
+  eOverloaded:'Claude est surchargé en ce moment. Réessaie dans une minute.', eBadModel:'Modèle introuvable. Vérifie CLAUDE_MODEL sur Vercel.'
+},
+en:{
+  heroTitle:'Turn your lectures into a <em>test</em>.',
+  heroSub:'Drop your PDFs, Word files, slides or photos of notes and pick your question types. Claude writes a test from your documents only, then grades you.',
+  noSample:'Open this page inside Claude (claude.ai or the app) to generate tests. It runs on your own Claude account.',
+  step1:'Your lectures', step2:'Your test',
+  dropTitle:'Drop your files here', dropSub:'or click to choose · PDF, Word, PowerPoint, Excel, text, photos',
+  types:'Question types', count:'Number of questions', difficulty:'Difficulty',
+  dEasy:'Easy', dMid:'Medium', dHard:'Exam level',
+  mode:'Mode', mPractice:'Practice', mExam:'Exam',
+  mPracticeHint:'Feedback after each question.', mExamHint:'Like the real day: graded at the end.',
+  timer:'Timed', timerOff:'Timer available in Exam mode',
+  focus:'Focus on a chapter or topic', focusPh:'optional · e.g. heart valves, ECG',
+  qlang:'Question language', qlAuto:'Same language as the lecture',
+  generate:'Generate the test', needFiles:'Add at least one ready lecture.', waitFiles:'Wait until your files finish loading.',
+  reading:'Reading…', example:'Example', exampleName:'Cardiac cycle (example).txt',
+  pages:'pages', slides:'slides', chars:'characters', imgs:'images',
+  scanned:'Scanned PDF, read as images',
+  eOld:'Old format. Save the file as .docx, .pptx or PDF.',
+  eMedia:'Video and audio are not supported.',
+  eRead:'Could not read this file.', eEmpty:'No text found in this file.',
+  eHeic:'This photo can’t be read here. Convert it to JPG.', eType:'File type not supported.',
+  eLib:'File reader unavailable. Check your connection and try again.',
+  meterTotal:'{c} characters · {i} images in total',
+  meterLong:'Your documents are long: Claude will read excerpts spread across everything. Focus on a chapter to go deeper.',
+  imgsCapped:'Only the first {n} images will be read.',
+  imgsNo:'Images can’t be sent from this view: only the text parts will be read.',
+  genReading:'Claude is reading your lectures…', genWriting:'Claude is writing the questions',
+  genSub:'{a} / {b} questions written', genBatch:'part {a} of {b}',
+  stop:'Stop', recent:'Recent tests', noHistory:'Your finished tests will show up here.',
+  retake:'Retake', del:'Delete', questions:'Questions',
+  question:'Question', caseLabel:'Clinical case',
+  multiHint:'One or more correct answers.', singleHint:'Only one correct answer.',
+  writePh:'Write your answer…',
+  prev:'Previous', next:'Next', check:'Check', seeResult:'See my result', hand:'Hand in', finish:'Finish', quit:'Quit',
+  vCorrect:'Correct', vPartial:'Partly correct', vIncorrect:'Wrong', vEmpty:'No answer', vUngraded:'Not graded',
+  why:'Explanation', fromCourse:'In your lecture', missing:'Missing:', modelAnswer:'Expected answer', expected:'Expected answer:',
+  disc1:'1 mismatch: half the points.', discN:'{n} mismatches: 0 points.',
+  grading:'Grading…', gradingOpen:'Claude is grading your written answers…',
+  quitConfirm:'Quit this test? Your answers will be lost.', cancel:'Cancel',
+  unanswered:'{n} unanswered question(s). Hand in anyway?', handYes:'Hand in',
+  finishPractice:'Finish now? Unchecked questions will be graded.',
+  timeUp:'Time is up, test handed in.',
+  outOf:'out of 20', correctCount:'correct', pointsL:'points', timeL:'time',
+  lvl16:'Excellent', lvl12:'Good', lvl10:'Pass mark reached', lvl0:'Needs more work',
+  byTopic:'By topic', byTopicNote:'Weakest first.', byKind:'By question type',
+  review:'Detailed review',
+  retakeErrors:'Retake my mistakes', retakeAll:'Retake the test', newTest:'New test', copyTest:'Copy the test',
+  copied:'Test copied with its answer key.', copyFail:'Copy not possible here.',
+  errorsSuffix:'mistakes', noErrors:'No mistakes to retake. Well done!',
+  answerKey:'Answer key', noAnswer:'No answer', yourAns:'Your answer', goodAns:'Correct answer',
+  legAns:'Answered', legOk:'Correct', legPart:'Partial', legBad:'Wrong',
+  practiceL:'Practice', examL:'Exam',
+  eNotGranted:'Access to Claude was declined for this page. Reload the page to try again.',
+  eDisabled:'Claude is not available on this account.',
+  eRate:'Usage limit reached. Try again in a while.',
+  eSession:'Your session expired. Sign in to Claude again.',
+  eTooLarge:'Too much content at once. Remove a file or focus on a chapter.',
+  eRefused:'Claude could not process this content.',
+  eJson:'Claude’s reply was incomplete. Try again or ask for fewer questions.',
+  eImage:'An image was not accepted. Try another photo.',
+  eGeneric:'Something went wrong. Try again.',
+  eNoQ:'No usable questions came back. Try again.',
+  retry:'Try again', skipGrade:'See without grading',
+  partial:'Partial test: {n} questions received.',
+  footer:'Questions come only from your documents. When in doubt, your lecture is the reference.',
+  pt:'pt', pts:'pts', min:'min',
+  k_qcm:'MCQ (single answer)', k_qcm_multi:'MCQ (one or more answers)', k_vf:'True / False', k_trous:'Fill in the blanks', k_courte:'Short answer', k_redaction:'Written answer', k_cas:'Clinical case',
+  ks_qcm:'MCQ', ks_qcm_multi:'MCQ', ks_vf:'True / False', ks_trous:'Blanks', ks_courte:'Short', ks_redaction:'Written', ks_cas:'Clinical case',
+  vTrue:'True', vFalse:'False',
+  tabLogin:'Log in', tabSignup:'Create an account', email:'Email', password:'Password', fullName:'First and last name', pwHint:'At least 8 characters',
+  loginBtn:'Log in', signupBtn:'Request an account', logout:'Log out', working:'One moment…',
+  forgotPw:'Forgot your password? Ask the person who invited you to reset it.',
+  signupIntro:'Stétho is in private testing. Every account is approved by hand, then you get a 1 month free trial.',
+  pendingTitle:'Request sent', pendingText:'Your account is waiting for approval. You can log in as soon as it is activated.', backLogin:'Back to log in',
+  aBadLogin:'Wrong email or password.', aPending:'Your account is still waiting for approval.', aRefused:'Your account request was not accepted.',
+  aDisabled:'This account is disabled.', aExists:'An account already exists with this email. Log in instead.', aBadEmail:'Invalid email.',
+  aBadName:'Write your first and last name.', aBadPw:'Password too short (at least 8 characters).', aTooMany:'Too many attempts. Try again in 15 minutes.',
+  aClosed:'Sign ups are closed for now.',
+  trialLeft:'Trial: {n} d', trialLast:'Trial: last day', trialEnded:'Trial ended',
+  eTrialOver:'Your free month is over. Contact the person who invited you to keep using Stétho.',
+  eQuotaUser:'You reached your test limit for today. Come back tomorrow.', eQuotaGlobal:'Stétho reached its limit for today. Come back tomorrow.',
+  eSessionOut:'Your session expired. Log in again.',
+  eNetwork:'Could not connect. Check your internet and try again.', eNoCredits:'Out of API credits. Top up in the Anthropic console.',
+  eBadKey:'Invalid API key. Check ANTHROPIC_API_KEY on Vercel.', eNotConfigured:'Site not set up yet: check ANTHROPIC_API_KEY and the Redis database on Vercel.',
+  eOverloaded:'Claude is overloaded right now. Try again in a minute.', eBadModel:'Model not found. Check CLAUDE_MODEL on Vercel.'
+}};
+
+const KINDS = {
+  qcm:{pts:1,min:1.2}, qcm_multi:{pts:1,min:1.5}, vf:{pts:1,min:.6}, trous:{pts:1,min:1.2},
+  courte:{pts:2,min:2.5}, redaction:{pts:4,min:7}, cas:{pts:2,min:3}
+};
+const KIND_ORDER = ['qcm_multi','vf','trous','courte','redaction','cas'];
+const OPEN = new Set(['courte','redaction']);
+const CHOICE = new Set(['qcm','qcm_multi','vf','cas']);
+const MULTI = new Set(['qcm_multi','cas']);
+
+const EXAMPLE = `Cycle cardiaque (physiologie, exemple)
+
+Le cycle cardiaque comprend une phase de contraction, la systole, et une phase de relaxation, la diastole. À une fréquence de 75 battements par minute, un cycle dure environ 0,8 s, dont environ 0,3 s de systole ventriculaire et 0,5 s de diastole.
+
+La systole ventriculaire débute par la contraction isovolumétrique : les valves auriculo-ventriculaires (mitrale et tricuspide) se ferment, ce qui produit le premier bruit du cœur (B1), et les valves sigmoïdes (aortique et pulmonaire) ne sont pas encore ouvertes. La pression intraventriculaire monte sans variation de volume. Lorsque la pression du ventricule gauche dépasse la pression aortique (environ 80 mmHg), la valve aortique s'ouvre : c'est la phase d'éjection.
+
+La fermeture des valves sigmoïdes en fin d'éjection produit le deuxième bruit (B2) et marque le début de la diastole. La relaxation isovolumétrique précède l'ouverture de la valve mitrale, qui survient quand la pression ventriculaire devient inférieure à la pression auriculaire. Le remplissage ventriculaire est d'abord rapide et passif, puis complété par la contraction auriculaire (systole auriculaire), qui assure environ 20 à 30 % du remplissage au repos.
+
+Le volume télédiastolique (VTD) du ventricule gauche est d'environ 120 mL et le volume télésystolique (VTS) d'environ 50 mL. Le volume d'éjection systolique (VES = VTD moins VTS) est donc d'environ 70 mL, et la fraction d'éjection (FE = VES / VTD) d'environ 60 %. Le débit cardiaque est le produit du VES par la fréquence cardiaque : 70 mL × 75 /min, soit environ 5 L/min.
+
+Sur l'électrocardiogramme, l'onde P correspond à la dépolarisation auriculaire, le complexe QRS à la dépolarisation ventriculaire et l'onde T à la repolarisation ventriculaire. La repolarisation auriculaire est masquée par le QRS.`;
+
+const LIBS = {
+  pdf:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+  pdfWorker:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+  zip:'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'
+};
+const MATERIAL_LIMIT = 110000;
+const BATCH = 10;
+
+/* ---------- helpers ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = {
+  get(k,d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch{ return d; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch{ return false; } }
+};
+const uid = () => Math.random().toString(36).slice(2,9) + Date.now().toString(36);
+
+const S = {
+  lang: store.get('stetho.lang', 'fr') === 'en' ? 'en' : 'fr',
+  files: [],
+  kinds: new Set(['qcm_multi','vf','courte']),
+  count: 10, diff: 'mid', mode: 'practice', timer: false,
+  sample: undefined, maxImages: 0, sampleReady: null,
+  test: null, idx: 0, answers: [], results: [], user: null,
+  genCtl: null, tick: null
+};
+
+function t(k, vars){
+  let s = (I18N[S.lang] && I18N[S.lang][k]) ?? I18N.fr[k] ?? k;
+  if (vars) for (const [a,b] of Object.entries(vars)) s = s.replaceAll('{'+a+'}', b);
+  return s;
+}
+const num = n => Number(n).toLocaleString(S.lang === 'en' ? 'en-US' : 'fr-FR');
+const fmt = n => { const r = Math.round(n*100)/100; return (Number.isInteger(r) ? String(r) : r.toFixed(r*10 % 1 === 0 ? 1 : 2)).replace('.', S.lang === 'fr' ? ',' : '.'); };
+const pts = q => KINDS[q.kind].pts;
+const ptsLabel = n => fmt(n) + ' ' + (n > 1 ? t('pts') : t('pt'));
+
+let toastTimer;
+function toast(msg){
+  const el = $('#toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>el.classList.remove('show'), 3800);
+}
+function ask(text, buttons){
+  return new Promise(res => {
+    $('#dlgText').textContent = text;
+    const box = $('#dlgBtns'); box.innerHTML = '';
+    buttons.forEach(b => {
+      const el = document.createElement('button');
+      el.type = 'button'; el.className = 'btn ' + (b.cls || 'ghost'); el.textContent = b.label;
+      el.onclick = () => { $('#dlg').hidden = true; res(b.value); };
+      box.appendChild(el);
+    });
+    $('#dlg').hidden = false;
+    box.lastChild && box.lastChild.focus();
+  });
+}
+function busy(on, text){ $('#busy').hidden = !on; if (text) $('#busyText').textContent = text; }
+function errMsg(e){
+  const map = { not_granted:'eNotGranted', sampling_disabled:'eDisabled', rate_limited:'eRate', session_expired:'eSession',
+    prompt_too_large:'eTooLarge', refused:'eRefused', invalid_json:'eJson', empty_completion:'eJson', image_rejected:'eImage',
+    network:'eNetwork', no_credits:'eNoCredits', bad_key:'eBadKey', not_configured:'eNotConfigured', overloaded:'eOverloaded', bad_model:'eBadModel',
+    unauthorized:'eSessionOut', no_session:'eSessionOut', trial_over:'eTrialOver', quota_user:'eQuotaUser', quota_global:'eQuotaGlobal',
+    bad_login:'aBadLogin', pending:'aPending', refused:'aRefused', disabled:'aDisabled', exists:'aExists', bad_email:'aBadEmail',
+    bad_name:'aBadName', bad_password:'aBadPw', too_many_attempts:'aTooMany', signups_closed:'aClosed' };
+  return t(map[e && e.code] || (e && e.i18n) || 'eGeneric');
+}
+function isPermanent(e){ return ['no_credits','bad_key','not_configured','bad_model','unauthorized','disabled','trial_over','quota_global'].includes(e && e.code); }
+
+function loadScript(src){
+  return new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = src; s.async = true;
+    s.onload = res; s.onerror = () => rej(Object.assign(new Error('load'), {i18n:'eLib'}));
+    document.head.appendChild(s);
+  });
+}
+let pdfP, zipP;
+function ensurePdf(){
+  if (!pdfP) pdfP = (async () => {
+    await loadScript(LIBS.pdf);
+    await loadScript(LIBS.pdfWorker); // runs pdf.js in the page itself
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = LIBS.pdfWorker;
+  })().catch(e => { pdfP = null; throw e; });
+  return pdfP;
+}
+function ensureZip(){
+  if (!zipP) zipP = loadScript(LIBS.zip).catch(e => { zipP = null; throw e; });
+  return zipP;
+}
+
+/* ---------- file reading ---------- */
+const IMG_EXT = ['jpg','jpeg','png','webp','gif','heic','heif','bmp'];
+function extOf(name){ return (name.split('.').pop() || '').toLowerCase(); }
+function iconClass(ext){
+  if (IMG_EXT.includes(ext)) return 'ext-img';
+  return 'ext-' + ext;
+}
+
+function xmlDoc(str){ return new DOMParser().parseFromString(str, 'application/xml'); }
+function paras(doc, pTag, tTag){
+  const out = [];
+  for (const p of doc.getElementsByTagName(pTag)){
+    let s = '';
+    if (tTag) for (const n of p.getElementsByTagName(tTag)) s += n.textContent;
+    else s = p.textContent;
+    s = s.replace(/\s+/g, ' ').trim();
+    if (s) out.push(s);
+  }
+  return out;
+}
+
+async function readDocx(buf){
+  await ensureZip();
+  const zip = await JSZip.loadAsync(buf);
+  const f = zip.file('word/document.xml');
+  if (!f) throw {i18n:'eRead'};
+  const lines = paras(xmlDoc(await f.async('string')), 'w:p', 'w:t');
+  return { text: lines.join('\n') };
+}
+async function readPptx(buf){
+  await ensureZip();
+  const zip = await JSZip.loadAsync(buf);
+  const slides = Object.keys(zip.files).map(n => { const m = n.match(/^ppt\/slides\/slide(\d+)\.xml$/); return m ? [ +m[1], n ] : null; })
+    .filter(Boolean).sort((a,b) => a[0] - b[0]);
+  const parts = [];
+  let k = 0;
+  for (const [n, path] of slides){
+    k++;
+    const lines = paras(xmlDoc(await zip.file(path).async('string')), 'a:p', 'a:t');
+    const notesF = zip.file(`ppt/notesSlides/notesSlide${n}.xml`);
+    let notes = [];
+    if (notesF) notes = paras(xmlDoc(await notesF.async('string')), 'a:p', 'a:t').filter(l => !/^\d+$/.test(l));
+    if (lines.length || notes.length) parts.push(`[Diapo ${k}]\n` + lines.join('\n') + (notes.length ? '\n(Notes) ' + notes.join(' ') : ''));
+  }
+  return { text: parts.join('\n\n'), pages: slides.length, unit: 'slides' };
+}
+async function readXlsx(buf){
+  await ensureZip();
+  const zip = await JSZip.loadAsync(buf);
+  const f = zip.file('xl/sharedStrings.xml');
+  if (!f) return { text: '' };
+  return { text: paras(xmlDoc(await f.async('string')), 'si').join('\n') };
+}
+async function readOdf(buf){
+  await ensureZip();
+  const zip = await JSZip.loadAsync(buf);
+  const f = zip.file('content.xml');
+  if (!f) throw {i18n:'eRead'};
+  const doc = xmlDoc(await f.async('string'));
+  const out = [];
+  const walk = el => {
+    for (const c of el.children){
+      if (c.tagName === 'text:p' || c.tagName === 'text:h'){ const s = c.textContent.replace(/\s+/g,' ').trim(); if (s) out.push(s); }
+      else walk(c);
+    }
+  };
+  walk(doc.documentElement);
+  return { text: out.join('\n') };
+}
+function stripRtf(s){
+  return s.replace(/\{\\\*[^{}]*\}/g, '').replace(/\\par[d]?/g, '\n').replace(/\\'([0-9a-f]{2})/gi, (_, h) => String.fromCharCode(parseInt(h,16)))
+    .replace(/\\[a-z]+-?\d* ?/gi, '').replace(/[{}]/g, '').replace(/\n{3,}/g, '\n\n').trim();
+}
+async function renderPdfPages(pdf, max){
+  const out = [];
+  for (let i = 1; i <= Math.min(pdf.numPages, max); i++){
+    const page = await pdf.getPage(i);
+    const v1 = page.getViewport({ scale: 1 });
+    const scale = Math.min(2.5, Math.sqrt(1.4e6 / (v1.width * v1.height)));
+    const vp = page.getViewport({ scale });
+    const c = document.createElement('canvas');
+    c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+    const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.85));
+    if (blob) out.push(blob);
+  }
+  return out;
+}
+async function readPdf(buf){
+  await ensurePdf();
+  const pdf = await pdfjsLib.getDocument({ data: buf, isEvalSupported: false }).promise;
+  const parts = []; let chars = 0;
+  for (let i = 1; i <= pdf.numPages; i++){
+    const page = await pdf.getPage(i);
+    const tc = await page.getTextContent();
+    let s = '';
+    for (const it of tc.items){ if ('str' in it){ s += it.str; s += it.hasEOL ? '\n' : ' '; } }
+    s = s.replace(/[ \t]+/g, ' ').replace(/\n\s*\n+/g, '\n').trim();
+    chars += s.length;
+    if (s) parts.push(`[Page ${i}]\n` + s);
+  }
+  const res = { text: parts.join('\n\n'), pages: pdf.numPages, unit: 'pages' };
+  if (chars < 60 * pdf.numPages){
+    res.images = await renderPdfPages(pdf, 20);
+    res.scanned = true;
+    if (chars < 20 * pdf.numPages) res.text = '';
+  }
+  return res;
+}
+async function toJpeg(file){
+  const bmp = await createImageBitmap(file);
+  const scale = Math.min(1, Math.sqrt(2.5e6 / (bmp.width * bmp.height)));
+  const c = document.createElement('canvas');
+  c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  const b = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.88));
+  if (!b) throw {i18n:'eHeic'};
+  return b;
+}
+async function readAny(file){
+  const ext = extOf(file.name);
+  const type = file.type || '';
+  if (type.startsWith('video/') || type.startsWith('audio/') || ['mp4','mov','avi','mkv','mp3','wav','m4a','aac','ogg','webm'].includes(ext)) throw {i18n:'eMedia'};
+  if (['doc','ppt','xls','pps'].includes(ext)) throw {i18n:'eOld'};
+  if (ext === 'pdf' || type === 'application/pdf') return readPdf(await file.arrayBuffer());
+  if (ext === 'docx') return readDocx(await file.arrayBuffer());
+  if (ext === 'pptx' || ext === 'ppsx') return readPptx(await file.arrayBuffer());
+  if (ext === 'xlsx') return readXlsx(await file.arrayBuffer());
+  if (ext === 'odt' || ext === 'odp') return readOdf(await file.arrayBuffer());
+  if (ext === 'rtf') return { text: stripRtf(await file.text()) };
+  if (ext === 'html' || ext === 'htm'){ const d = new DOMParser().parseFromString(await file.text(), 'text/html'); return { text: (d.body ? d.body.innerText || d.body.textContent : '').trim() }; }
+  if (IMG_EXT.includes(ext) || type.startsWith('image/')){
+    const ok = ['image/jpeg','image/png','image/webp','image/gif'];
+    if (ok.includes(type)) return { images: [file], text: '' };
+    try { return { images: [await toJpeg(file)], text: '' }; } catch { throw {i18n:'eHeic'}; }
+  }
+  if (['txt','md','csv','tsv','json','xml'].includes(ext) || type.startsWith('text/')) return { text: (await file.text()).trim() };
+  throw {i18n:'eType'};
+}
+
+function addFiles(list){
+  for (const file of list){
+    const f = { id: uid(), name: file.name, ext: extOf(file.name), size: file.size, status: 'reading', text: '', images: [], pages: 0, unit: '', scanned: false, error: '' };
+    S.files.push(f);
+    readAny(file).then(r => {
+      f.text = r.text || ''; f.images = r.images || []; f.pages = r.pages || 0; f.unit = r.unit || ''; f.scanned = !!r.scanned;
+      if (!f.text.trim() && !f.images.length) { f.status = 'error'; f.error = 'eEmpty'; }
+      else f.status = 'ready';
+    }).catch(e => { f.status = 'error'; f.error = (e && e.i18n) || 'eRead'; console.warn(e); })
+      .finally(renderFiles);
+  }
+  renderFiles();
+}
+
+/* ---------- setup rendering ---------- */
+function renderFiles(){
+  const ul = $('#fileList');
+  ul.innerHTML = S.files.map(f => {
+    const ext = IMG_EXT.includes(f.ext) ? 'img' : (f.ext || 'txt');
+    let sub = '';
+    if (f.status === 'reading') sub = `<span><span class="spin"></span> ${t('reading')}</span>`;
+    else if (f.status === 'error') sub = `<span class="err">${esc(t(f.error))}</span>`;
+    else {
+      const bits = [];
+      if (f.example) bits.push(`<span class="tag">${t('example')}</span>`);
+      if (f.pages) bits.push(`<span>${num(f.pages)} ${t(f.unit || 'pages')}</span>`);
+      if (f.text) bits.push(`<span>${num(f.text.length)} ${t('chars')}</span>`);
+      if (f.scanned) bits.push(`<span>${t('scanned')}</span>`);
+      else if (f.images.length) bits.push(`<span>${num(f.images.length)} ${t('imgs')}</span>`);
+      sub = bits.join('');
+    }
+    return `<li class="file st-${f.status}"><span class="ficon ${iconClass(ext)}">${esc(ext === 'img' ? 'IMG' : ext.toUpperCase().slice(0,4))}</span>
+      <div style="min-width:0"><div class="fname">${esc(f.example ? t('exampleName') : f.name)}</div><div class="fsub">${sub}</div></div>
+      <button type="button" class="x" data-rm="${f.id}" aria-label="${esc(t('del'))}">✕</button></li>`;
+  }).join('');
+  renderMeter();
+}
+function renderMeter(){
+  const ready = S.files.filter(f => f.status === 'ready');
+  const chars = ready.reduce((a, f) => a + f.text.length, 0);
+  const imgs = ready.reduce((a, f) => a + f.images.length, 0);
+  const lines = [];
+  if (ready.length) lines.push(`<div>${t('meterTotal', { c: num(chars), i: num(imgs) })}</div>`);
+  if (chars > MATERIAL_LIMIT) lines.push(`<div class="warnline">${t('meterLong')}</div>`);
+  if (imgs && S.sample && S.maxImages === 0) lines.push(`<div class="warnline">${t('imgsNo')}</div>`);
+  else if (S.maxImages && imgs > S.maxImages) lines.push(`<div class="warnline">${t('imgsCapped', { n: S.maxImages })}</div>`);
+  $('#meter').innerHTML = lines.join('');
+  updateGenHint();
+}
+function seg(el, items, value, onPick){
+  el.innerHTML = items.map(([v, label]) => `<button type="button" data-v="${v}" aria-pressed="${String(v) === String(value)}">${esc(label)}</button>`).join('');
+  el.onclick = e => { const b = e.target.closest('button'); if (!b) return; onPick(b.dataset.v); };
+}
+function renderSetup(){
+  const chips = $('#typeChips');
+  chips.innerHTML = KIND_ORDER.map(k => `<button type="button" class="chip" data-k="${k}" aria-pressed="${S.kinds.has(k)}"><span class="box"></span>${esc(t('k_' + k))}</button>`).join('');
+  seg($('#segCount'), [[5,'5'],[10,'10'],[15,'15'],[20,'20'],[30,'30']], S.count, v => { S.count = +v; renderSetup(); });
+  seg($('#segDiff'), [['easy', t('dEasy')], ['mid', t('dMid')], ['hard', t('dHard')]], S.diff, v => { S.diff = v; renderSetup(); });
+  seg($('#segMode'), [['practice', t('mPractice')], ['exam', t('mExam')]], S.mode, v => { S.mode = v; renderSetup(); });
+  $('#modeHint').textContent = S.mode === 'exam' ? t('mExamHint') : t('mPracticeHint');
+  const tg = $('#timerToggle');
+  tg.disabled = S.mode !== 'exam';
+  tg.checked = S.mode === 'exam' && S.timer;
+  const mins = Math.ceil(planKinds().reduce((a, k) => a + KINDS[k].min, 0));
+  $('#timerLabel').textContent = S.mode === 'exam' ? `${t('timer')} · ${mins} ${t('min')}` : t('timerOff');
+  updateGenHint();
+}
+function updateGenHint(){
+  const reading = S.files.some(f => f.status === 'reading');
+  const ready = S.files.some(f => f.status === 'ready');
+  const btn = $('#genBtn');
+  const over = trialOver();
+  btn.disabled = S.sample === null || !ready || reading || !!S.genCtl || over;
+  $('#genHint').textContent = S.sample === null ? '' : over ? t('trialEnded') : reading ? t('waitFiles') : !ready ? t('needFiles') : '';
+}
+function trialOver(){ return !!(S.user && S.user.trialEnd <= Date.now()); }
+function renderUser(){
+  const u = S.user;
+  $('#userBox').hidden = !u;
+  $('#trialBanner').hidden = !trialOver();
+  if (!u) return;
+  $('#userName').textContent = u.name || u.email;
+  const days = Math.ceil((u.trialEnd - Date.now()) / 864e5);
+  const b = $('#trialBadge');
+  b.textContent = days <= 0 ? t('trialEnded') : days === 1 ? t('trialLast') : t('trialLeft', { n: days });
+  b.className = 'tbadge' + (days <= 0 ? ' over' : days <= 5 ? ' low' : '');
+}
+function applyI18n(){
+  document.documentElement.lang = S.lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  $('#heroTitle').innerHTML = t('heroTitle');
+  $('#langFr').setAttribute('aria-pressed', S.lang === 'fr');
+  $('#langEn').setAttribute('aria-pressed', S.lang === 'en');
+  renderSetup(); renderFiles(); renderHistory();
+  if (!$('#view-test').hidden && S.test) { renderQ(); renderTestChrome(); }
+  if (!$('#view-results').hidden && S.test) renderResults();
+  renderUser();
+}
+
+/* ---------- history ---------- */
+function getHistory(){ const h = store.get('stetho.history.v1', []); return Array.isArray(h) ? h : []; }
+function saveHistory(h){
+  let list = h.slice(0, 12);
+  while (list.length && !store.set('stetho.history.v1', list)) list = list.slice(0, -1);
+}
+function gradeClass(g){ return g >= 14 ? 'g-good' : g >= 10 ? 'g-mid' : 'g-low'; }
+function renderHistory(){
+  const h = getHistory();
+  const el = $('#historyList');
+  if (!h.length){ el.innerHTML = `<p class="empty">${t('noHistory')}</p>`; return; }
+  el.innerHTML = h.map(e => {
+    const d = new Date(e.date).toLocaleDateString(S.lang === 'en' ? 'en-GB' : 'fr-FR', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+    return `<div class="hcard"><div class="hrow"><div class="ht">${esc(e.title)}</div><span class="grade ${gradeClass(e.grade)}">${fmt(e.grade)}/20</span></div>
+      <div class="hm">${esc(d)} · ${e.questions.length} ${t('questions').toLowerCase()} · ${e.mode === 'exam' ? t('examL') : t('practiceL')}</div>
+      <div class="hrow"><button type="button" class="btn sm" data-retake="${e.id}">${t('retake')}</button><button type="button" class="linkbtn" data-hdel="${e.id}">${t('del')}</button></div></div>`;
+  }).join('');
+}
+
+/* ---------- generation ---------- */
+function planKinds(){
+  const kinds = KIND_ORDER.filter(k => S.kinds.has(k));
+  const out = [];
+  for (let i = 0; i < S.count; i++) out.push(kinds[i % kinds.length]);
+  return out;
+}
+function condense(text, target){
+  if (text.length <= target) return text;
+  const chunk = 1500, n = Math.ceil(text.length / chunk), keep = Math.max(1, Math.floor(target / chunk));
+  const picks = [];
+  for (let i = 0; i < keep; i++) picks.push(Math.floor(i * n / keep));
+  return picks.map(i => text.slice(i * chunk, (i + 1) * chunk)).join('\n[...]\n');
+}
+function buildMaterial(limit){
+  const ready = S.files.filter(f => f.status === 'ready');
+  const withText = ready.filter(f => f.text.trim());
+  const total = withText.reduce((a, f) => a + f.text.length, 0);
+  const ratio = total > limit ? limit / total : 1;
+  const material = withText.map(f => `=== ${f.example ? t('exampleName') : f.name} ===\n` + condense(f.text, Math.floor(f.text.length * ratio))).join('\n\n');
+  let images = ready.flatMap(f => f.images);
+  images = S.maxImages ? images.slice(0, S.maxImages) : [];
+  return { material, images };
+}
+function counts(list){
+  const c = {}; list.forEach(k => c[k] = (c[k] || 0) + 1);
+  return Object.entries(c).map(([k, n]) => `${n} "${k}"`).join(', ');
+}
+function langRule(){
+  const v = $('#qlang').value;
+  if (v === 'fr') return 'Write everything in French (as used in Moroccan medical faculties).';
+  if (v === 'en') return 'Write everything in English, even if the material is in French.';
+  return 'Write in the same language as the material (most likely French).';
+}
+const DIFF = {
+  easy:'Easy: direct recall of definitions, key facts and numbers stated in the material.',
+  mid:'Medium: a mix of recall and understanding; some questions link two notions or ask for a consequence.',
+  hard:'Exam level: application, mechanisms, comparisons, traps on numbers and exceptions, close distractors. Always fair and fully supported by the material.'
+};
+function genPrompt(kindsList, material, nImages, already){
+  const focus = $('#focus').value.trim();
+  const vfLabels = $('#qlang').value === 'en' ? '["True","False"]' : '["Vrai","Faux"] (or ["True","False"] if writing in English)';
+  return `You write practice tests for second-year medical students in a faculté de médecine in Morocco (French-language curriculum; exams use QCM with options A to E).
+
+Use ONLY the course material below${nImages ? ` and the ${nImages} attached image(s), which are pages or photos of the same course` : ''}. Every question, correct answer and explanation must be supported by the material. Never invent numbers, drugs, doses or facts that are not in it.
+
+Language: ${langRule()}
+Difficulty: ${DIFF[S.diff]}
+${focus ? `Focus mainly on: ${focus}. Use other parts of the material only if needed.` : 'Cover the whole material evenly, from beginning to end, not only the first part.'}
+
+Write exactly ${kindsList.length} questions with this mix of kinds: ${counts(kindsList)}. Mix the order of kinds. Vary which option is correct.${already.length ? `\nThese questions already exist in the test, do not repeat or paraphrase them:\n${already.map(s => '- ' + s).join('\n')}` : ''}
+
+Fields of every question: "kind", "question", "topic" (2 to 4 words naming the chapter or notion), "explanation" (2 or 3 sentences: why the answer is right and, for choice questions, why the main distractors are wrong), "source" (an exact excerpt of at most 25 words copied from the material that supports the answer; for an image, say which page or photo).
+Extra fields by kind:
+- "qcm_multi": "options": exactly 5 strings (A to E); "answer": array of the correct indices (0 based). The number of correct options varies from question to question: sometimes only 1, often 2 or 3, occasionally 4 or all 5. Never let the student guess the count from the wording. Wrong options are plausible but clearly wrong according to the material.
+- "vf": "question" is one statement; "options": ${vfLabels}; "answer": [0] if the statement is true, [1] if false. Make about half of them false.
+- "trous": "question" is a sentence or short passage with 1 to 3 blanks written as ____ (four underscores); "blanks": one array per blank listing accepted answers, the expected one first then synonyms or abbreviations. Blanks are key terms or numbers of 1 to 3 words.
+- "courte": answered in one or two sentences; "model_answer": string; "key_points": 1 to 3 short points a correct answer must contain.
+- "redaction": exam-style written question (explain, compare, describe a mechanism); "model_answer": a complete answer of 5 to 10 sentences or structured points, as one string; "key_points": 3 to 6 points used for grading.
+- "cas": a short clinical case. "context": 3 to 6 sentences presenting a patient (age, sex, complaint, key findings) built only from notions in the material; "question" asks about it; "options": exactly 5 strings; "answer": array of correct indices (1 to 4). If the material is basic science (physiology, anatomy, biochemistry), make it an applied scenario that still tests the material.
+
+Also give the test a short "title" naming its subject (at most 6 words).
+
+Reply with only this JSON object:
+{"title": "...", "questions": [ ... ]}
+
+COURSE MATERIAL:
+<<<
+${material}
+>>>`;
+}
+function sanitize(q){
+  if (!q || typeof q !== 'object') return null;
+  const alias = { qcm:'qcm_multi', mcq:'qcm_multi', qcu:'qcm_multi', qcm_single:'qcm_multi', qcm_multiple:'qcm_multi', qcm_multiples:'qcm_multi', qrm:'qcm_multi', multi:'qcm_multi', true_false:'vf', tf:'vf', truefalse:'vf',
+    fill:'trous', blanks:'trous', fill_in_the_blanks:'trous', short:'courte', short_answer:'courte', written:'redaction', open:'redaction', essay:'redaction', case:'cas', clinical_case:'cas', cas_clinique:'cas' };
+  let kind = String(q.kind || '').toLowerCase().trim().replace(/[\s-]+/g, '_');
+  kind = alias[kind] || kind;
+  if (!KINDS[kind]) return null;
+  const str = v => Array.isArray(v) ? v.map(x => String(x)).join('\n') : (v == null ? '' : String(v));
+  const out = { kind, question: str(q.question).trim(), topic: str(q.topic).trim().slice(0, 48), explanation: str(q.explanation).trim(), source: str(q.source).trim(), context: str(q.context).trim() };
+  if (!out.question) return null;
+  if (CHOICE.has(kind)){
+    let opts = Array.isArray(q.options) ? q.options.map(o => typeof o === 'object' && o ? String(o.text ?? o.label ?? o.option ?? '') : String(o)) : [];
+    opts = opts.map(o => o.replace(/^\s*[A-Ea-e][).:]\s+/, '').trim()).filter(Boolean);
+    if (kind === 'vf' && opts.length !== 2) opts = [t('vTrue'), t('vFalse')];
+    let ans = q.answer ?? q.answers ?? q.correct;
+    if (!Array.isArray(ans)) ans = [ans];
+    ans = ans.map(x => {
+      if (typeof x === 'number') return x;
+      if (typeof x === 'boolean') return x ? 0 : 1;
+      const s = String(x).trim();
+      if (/^\d+$/.test(s)) return +s;
+      if (/^[A-Ha-h]$/.test(s)) return s.toUpperCase().charCodeAt(0) - 65;
+      if (/^(vrai|true)$/i.test(s)) return 0;
+      if (/^(faux|false)$/i.test(s)) return 1;
+      return opts.findIndex(o => o === s);
+    }).filter(x => Number.isInteger(x) && x >= 0 && x < opts.length);
+    ans = [...new Set(ans)].sort((a, b) => a - b);
+    if (opts.length < 2 || !ans.length) return null;
+    if (kind === 'qcm' && ans.length > 1) out.kind = 'qcm_multi';
+    out.options = opts; out.answer = ans;
+  }
+  if (kind === 'trous'){
+    const n = (out.question.match(/_{3,}/g) || []).length;
+    let b = Array.isArray(q.blanks) ? q.blanks.map(x => (Array.isArray(x) ? x : [x]).map(y => String(y)).filter(Boolean)) : [];
+    b = b.filter(x => x.length);
+    if (!n || b.length < n) return null;
+    out.blanks = b.slice(0, n);
+  }
+  if (OPEN.has(kind)){
+    out.model_answer = str(q.model_answer ?? q.answer).trim();
+    out.key_points = Array.isArray(q.key_points) ? q.key_points.map(String) : [];
+    if (!out.model_answer) return null;
+  }
+  return out;
+}
+
+async function generate(){
+  if (S.genCtl) return;
+  if (S.sample === undefined && S.sampleReady) await S.sampleReady;
+  if (!S.sample){ updateGenHint(); return; }
+  const plan = planKinds();
+  // shuffle so batches mix kinds
+  for (let i = plan.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [plan[i], plan[j]] = [plan[j], plan[i]]; }
+  const batches = [];
+  const nb = Math.ceil(plan.length / BATCH);
+  const size = Math.ceil(plan.length / nb);
+  for (let i = 0; i < plan.length; i += size) batches.push(plan.slice(i, i + size));
+
+  let { material, images } = buildMaterial(MATERIAL_LIMIT);
+  let probe = genPrompt(batches[0], material, images.length, []);
+  if (new TextEncoder().encode(probe).length > 240000){ ({ material, images } = buildMaterial(Math.floor(MATERIAL_LIMIT * 0.55))); }
+
+  const ctl = new AbortController(); S.genCtl = ctl;
+  updateGenHint();
+  const gen = $('#gen'); gen.hidden = false;
+  $('#genText').textContent = t('genReading');
+  $('#genBar').classList.add('indet'); $('#genBar').firstElementChild.style.width = '0';
+  $('#genSub').textContent = '';
+  gen.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  const questions = []; let title = '';
+  try {
+    for (let b = 0; b < batches.length; b++){
+      const already = questions.map(q => q.question.slice(0, 140));
+      const prompt = genPrompt(batches[b], material, images.length, already);
+      const opts = {
+        signal: ctl.signal, cache: false, purpose: 'generate', part: b + 1,
+        onText: ({ text }) => {
+          const n = Math.min(batches[b].length, (text.match(/"kind"\s*:/g) || []).length);
+          const done = questions.length + n;
+          $('#genText').textContent = t('genWriting');
+          $('#genBar').classList.remove('indet');
+          $('#genBar').firstElementChild.style.width = Math.round(100 * done / plan.length) + '%';
+          $('#genSub').textContent = t('genSub', { a: done, b: plan.length }) + (batches.length > 1 ? ' · ' + t('genBatch', { a: b + 1, b: batches.length }) : '');
+        }
+      };
+      if (images.length) opts.images = images;
+      opts.maxTokens = 16000;
+      let res;
+      try { res = await S.sample.json(prompt, opts); }
+      catch (e) { if (questions.length && e && e.code !== 'cancelled'){ toast(t('partial', { n: questions.length })); break; } throw e; }
+      const list = Array.isArray(res) ? res : (res && Array.isArray(res.questions) ? res.questions : []);
+      if (!title && res && res.title) title = String(res.title).slice(0, 80);
+      list.map(sanitize).filter(Boolean).forEach(q => questions.push(q));
+    }
+    if (!questions.length) throw { i18n: 'eNoQ' };
+    const firstFile = S.files.find(f => f.status === 'ready');
+    if (!title) title = firstFile ? (firstFile.example ? t('exampleName') : firstFile.name).replace(/\.[^.]+$/, '') : 'Test';
+    gen.hidden = true;
+    startTest(questions, title, S.mode, S.mode === 'exam' && S.timer);
+  } catch (e) {
+    gen.hidden = true;
+    if (e && e.code === 'cancelled') return;
+    console.warn(e);
+    if (e && (e.code === 'unauthorized' || e.code === 'disabled')) { showGate(errMsg(e)); return; }
+    if (e && e.code === 'trial_over' && S.user){ S.user.trialEnd = 0; renderUser(); updateGenHint(); }
+    toast(errMsg(e));
+  } finally {
+    S.genCtl = null; updateGenHint();
+  }
+}
+
+/* ---------- test ---------- */
+function show(view){
+  ['setup','test','results'].forEach(v => { $('#view-' + v).hidden = v !== view; });
+  window.scrollTo({ top: 0 });
+}
+function startTest(questions, title, mode, timed){
+  const timerSec = timed ? Math.ceil(questions.reduce((a, q) => a + KINDS[q.kind].min, 0)) * 60 : 0;
+  S.test = { id: uid(), title, questions, mode, timerSec, startedAt: Date.now(), endedAt: 0, done: false, saved: false };
+  S.idx = 0;
+  S.answers = questions.map(() => null);
+  S.results = questions.map(() => null);
+  show('test');
+  renderTestChrome(); renderQ();
+  clearInterval(S.tick);
+  if (timerSec){ $('#timer').hidden = false; tickTimer(); S.tick = setInterval(tickTimer, 1000); }
+  else $('#timer').hidden = true;
+}
+function tickTimer(){
+  const T = S.test; if (!T || T.done) { clearInterval(S.tick); return; }
+  const left = Math.max(0, T.timerSec - Math.floor((Date.now() - T.startedAt) / 1000));
+  const el = $('#timer');
+  el.textContent = String(Math.floor(left / 60)).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0');
+  el.classList.toggle('low', left <= 60);
+  if (left === 0){ clearInterval(S.tick); toast(t('timeUp')); finishTest(true); }
+}
+function renderTestChrome(){
+  const T = S.test;
+  $('#testTitle').textContent = T.title;
+  const totalPts = T.questions.reduce((a, q) => a + pts(q), 0);
+  $('#testMeta').textContent = `${T.mode === 'exam' ? t('examL') : t('practiceL')} · ${T.questions.length} ${t('questions').toLowerCase()} · ${ptsLabel(totalPts)}`;
+  $('#finishBtn').textContent = T.mode === 'exam' ? t('hand') : t('finish');
+  $('#legend').innerHTML = T.mode === 'exam'
+    ? `<div><i style="background:var(--blue-soft);border:1px solid var(--blue)"></i>${t('legAns')}</div>`
+    : `<div><i style="background:var(--green)"></i>${t('legOk')}</div><div><i style="background:var(--warn)"></i>${t('legPart')}</div><div><i style="background:var(--bad)"></i>${t('legBad')}</div>`;
+  renderMap();
+}
+function answered(i){
+  const a = S.answers[i]; if (!a) return false;
+  if (a.sel) return a.sel.length > 0;
+  if (a.blanks) return a.blanks.some(x => x && x.trim());
+  if (typeof a.text === 'string') return a.text.trim().length > 0;
+  return false;
+}
+function renderMap(){
+  const T = S.test;
+  $('#qMap').innerHTML = T.questions.map((q, i) => {
+    const r = S.results[i];
+    let cls = 'qdot';
+    if (r && r.verdict && (T.mode === 'practice' || T.done)) cls += ' v-' + r.verdict;
+    else if (answered(i)) cls += ' ans';
+    if (i === S.idx) cls += ' cur';
+    return `<button type="button" class="${cls}" data-go="${i}" aria-label="${t('question')} ${i + 1}">${i + 1}</button>`;
+  }).join('');
+  const doneCount = T.mode === 'practice' ? S.results.filter(r => r && r.verdict).length : S.answers.filter((_, i) => answered(i)).length;
+  $('#progBar').style.width = Math.round(100 * doneCount / T.questions.length) + '%';
+}
+function verdictLabel(v){ return { correct: t('vCorrect'), partial: t('vPartial'), incorrect: t('vIncorrect'), empty: t('vEmpty'), ungraded: t('vUngraded') }[v] || ''; }
+const LET = 'ABCDEFGH';
+function optLetter(q, j){ return q.kind === 'vf' ? (S.lang === 'en' && /true|false/i.test(q.options.join('')) ? 'TF' : (/^v/i.test(q.options[0]) ? 'VF' : 'TF'))[j] || LET[j] : LET[j]; }
+
+function renderQ(){
+  const T = S.test, i = S.idx, q = T.questions[i], a = S.answers[i], r = S.results[i];
+  const locked = !!(r && r.verdict) && (T.mode === 'practice' || T.done);
+  const grading = !!(r && r.grading);
+  let h = `<div class="q-head"><span class="q-num">${t('question')} ${i + 1} / ${T.questions.length}</span><span class="pill">${esc(t('ks_' + q.kind))}</span>${q.topic ? `<span class="pill soft">${esc(q.topic)}</span>` : ''}<span class="pts">${ptsLabel(pts(q))}</span></div>`;
+  if (q.context) h += `<div class="context"><div class="ctx-label">${t('caseLabel')}</div><p>${esc(q.context)}</p></div>`;
+
+  if (q.kind === 'trous'){
+    const parts = q.question.split(/_{3,}/);
+    const vals = (a && a.blanks) || [];
+    const okList = locked && r.blankOk ? r.blankOk : null;
+    h += `<p class="q-text">` + parts.map((p, k) => esc(p) + (k < parts.length - 1
+      ? `<input type="text" class="blank${okList ? (okList[k] ? ' ok' : ' ko') : ''}" data-blank="${k}" id="blank-${i}-${k}" aria-label="${k + 1}" value="${esc(vals[k] || '')}" ${locked ? 'disabled' : ''} autocomplete="off" size="${Math.max(9, (vals[k] || '').length + 2)}">` : '')).join('') + `</p>`;
+  } else {
+    h += `<h3 class="q-text">${esc(q.question)}</h3>`;
+  }
+
+  if (CHOICE.has(q.kind)){
+    const multi = MULTI.has(q.kind);
+    if (q.kind !== 'vf') h += `<p class="ahint">${multi ? t('multiHint') : t('singleHint')}</p>`;
+    const sel = (a && a.sel) || [];
+    h += `<div class="opts${multi ? ' multi' : ''}" role="${multi ? 'group' : 'radiogroup'}">` + q.options.map((o, j) => {
+      const isSel = sel.includes(j), isOk = q.answer.includes(j);
+      let cls = 'opt';
+      if (isSel) cls += ' sel';
+      let mark = '';
+      if (locked){ if (isOk && isSel) { cls += ' right'; mark = '✓'; } else if (isOk) { cls += ' right miss'; mark = '✓'; } else if (isSel) { cls += ' wrong'; mark = '✕'; } }
+      return `<button type="button" class="${cls}" data-opt="${j}" role="${multi ? 'checkbox' : 'radio'}" aria-checked="${isSel}" ${locked || grading ? 'disabled' : ''}><span class="letter">${optLetter(q, j)}</span><span>${esc(o)}</span><span class="omark">${mark}</span></button>`;
+    }).join('') + `</div>`;
+  }
+  if (OPEN.has(q.kind)){
+    h += `<textarea id="open-${i}" data-open rows="${q.kind === 'redaction' ? 9 : 3}" placeholder="${esc(t('writePh'))}" ${locked || grading ? 'disabled' : ''}>${esc((a && a.text) || '')}</textarea>`;
+  }
+  if (grading) h += `<div class="fb"><div class="fb-top"><strong style="font-size:16px"><span class="spin"></span> ${t('grading')}</strong></div></div>`;
+  if (locked) h += feedbackHTML(q, r);
+
+  // nav
+  const last = i === T.questions.length - 1;
+  let right = '';
+  if (T.mode === 'practice' && !T.done){
+    if (!locked) right = `<button type="button" class="btn primary" data-act="check" ${grading ? 'disabled' : ''}>${t('check')}</button>`;
+    else right = last ? `<button type="button" class="btn go" data-act="finish">${t('seeResult')}</button>` : `<button type="button" class="btn primary" data-act="next">${t('next')} →</button>`;
+  } else if (!T.done){
+    right = last ? `<button type="button" class="btn go" data-act="finish">${t('hand')}</button>` : `<button type="button" class="btn primary" data-act="next">${t('next')} →</button>`;
+  } else {
+    right = last ? '' : `<button type="button" class="btn primary" data-act="next">${t('next')} →</button>`;
+  }
+  h += `<div class="q-nav">${i > 0 ? `<button type="button" class="btn ghost" data-act="prev">← ${t('prev')}</button>` : '<span></span>'}<div class="right">${right}</div></div>`;
+  $('#qCard').innerHTML = h;
+}
+function feedbackHTML(q, r){
+  const v = r.verdict;
+  let h = `<div class="fb fb-${v}"><div class="fb-top"><strong>${verdictLabel(v)}</strong><span class="fb-score">${fmt(r.score)} / ${ptsLabel(r.max)}</span></div>`;
+  if (MULTI.has(q.kind) && r.disc > 0) h += `<p class="fb-note">${r.disc === 1 ? t('disc1') : t('discN', { n: r.disc })}</p>`;
+  if (r.feedback) h += `<p>${esc(r.feedback)}</p>`;
+  if (r.missing && r.missing.length) h += `<p><b>${t('missing')}</b> ${r.missing.map(esc).join(' · ')}</p>`;
+  if (q.kind === 'trous') h += `<p><b>${t('expected')}</b> ${q.blanks.map(b => esc(b[0])).join(' · ')}</p>`;
+  if (OPEN.has(q.kind)) h += `<div class="model"><span class="model-l">${t('modelAnswer')}</span>${esc(q.model_answer)}</div>`;
+  if (q.explanation) h += `<p><b>${t('why')}.</b> ${esc(q.explanation)}</p>`;
+  if (q.source) h += `<blockquote class="src"><span>${t('fromCourse')}</span>${esc(q.source)}</blockquote>`;
+  return h + `</div>`;
+}
+
+/* ---------- grading ---------- */
+function norm(s){ return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9%,.]+/g, ' ').replace(/[.,]+$/,'').trim(); }
+function lev(a, b){
+  if (Math.abs(a.length - b.length) > 2) return 9;
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+function blankMatch(val, accepted){
+  const v = norm(val); if (!v) return false;
+  return accepted.some(x => { const n = norm(x); return n === v || (n.length > 5 && lev(n, v) <= 1) || (n.length > 9 && lev(n, v) <= 2); });
+}
+function gradeLocal(i){
+  const q = S.test.questions[i], a = S.answers[i], max = pts(q);
+  if (!answered(i)) return { score: 0, max, verdict: 'empty' };
+  if (q.kind === 'qcm' || q.kind === 'vf'){
+    const ok = a.sel.length === 1 && q.answer.includes(a.sel[0]);
+    return { score: ok ? max : 0, max, verdict: ok ? 'correct' : 'incorrect' };
+  }
+  if (MULTI.has(q.kind)){
+    const good = new Set(q.answer); let disc = 0;
+    q.options.forEach((_, j) => { if (a.sel.includes(j) !== good.has(j)) disc++; });
+    const score = disc === 0 ? max : disc === 1 ? max / 2 : 0;
+    return { score, max, disc, verdict: disc === 0 ? 'correct' : disc === 1 ? 'partial' : 'incorrect' };
+  }
+  if (q.kind === 'trous'){
+    const ok = q.blanks.map((acc, k) => blankMatch((a.blanks || [])[k], acc));
+    const n = ok.filter(Boolean).length;
+    return { score: max * n / ok.length, max, blankOk: ok, verdict: n === ok.length ? 'correct' : n ? 'partial' : 'incorrect' };
+  }
+  return null;
+}
+async function gradeOpen(idxs){
+  const T = S.test;
+  const items = idxs.map(i => { const q = T.questions[i]; return { id: i, kind: q.kind, context: q.context || undefined, question: q.question, model_answer: q.model_answer, key_points: q.key_points, course_excerpt: q.source, points: pts(q), student_answer: S.answers[i].text }; });
+  const lang = S.lang === 'en' ? 'English' : 'French';
+  const prompt = `You grade written answers from a second-year medical student against the expected answer and the course excerpt. Be fair and precise like a faculty examiner: accept correct synonyms, abbreviations and other wording, give partial credit for partially correct answers, and take points off for factual errors or confusions. Do not reward length.
+
+For each item return an object: {"id": number, "score": number from 0 to its "points" in steps of 0.5, "verdict": "correct" | "partial" | "incorrect", "feedback": "1 to 3 sentences in ${lang}, addressed to the student with tu (or you), saying what was right and what was wrong", "missing": [short key points that were missing, in ${lang}, empty if none]}.
+
+Reply with only a JSON array of these objects, one per item.
+
+ITEMS:
+${JSON.stringify(items, null, 1)}`;
+  const res = await S.sample.json(prompt, { maxTokens: 6000, purpose: 'grade' });
+  const arr = Array.isArray(res) ? res : (res && Array.isArray(res.results) ? res.results : []);
+  for (const i of idxs){
+    const g = arr.find(x => Number(x && x.id) === i);
+    const max = pts(T.questions[i]);
+    if (!g){ S.results[i] = { score: 0, max, verdict: 'ungraded' }; continue; }
+    let score = Math.max(0, Math.min(max, Math.round(Number(g.score) * 2) / 2 || 0));
+    let verdict = ['correct','partial','incorrect'].includes(g.verdict) ? g.verdict : (score >= max ? 'correct' : score > 0 ? 'partial' : 'incorrect');
+    S.results[i] = { score, max, verdict, feedback: String(g.feedback || ''), missing: Array.isArray(g.missing) ? g.missing.map(String).slice(0, 6) : [] };
+  }
+}
+async function checkCurrent(){
+  const i = S.idx, q = S.test.questions[i];
+  if (OPEN.has(q.kind) && answered(i)){
+    S.results[i] = { grading: true }; renderQ();
+    try { await gradeOpen([i]); }
+    catch (e) { S.results[i] = null; if (e && (e.code === 'unauthorized' || e.code === 'disabled')) showGate(errMsg(e)); else toast(errMsg(e)); }
+    if (S.test && S.idx === i) renderQ();
+    renderMap();
+    return;
+  }
+  S.results[i] = OPEN.has(q.kind) ? { score: 0, max: pts(q), verdict: 'empty' } : gradeLocal(i);
+  renderQ(); renderMap();
+}
+async function finishTest(force){
+  const T = S.test; if (!T || T.done) return;
+  if (!force){
+    if (T.mode === 'exam'){
+      const n = T.questions.filter((_, i) => !answered(i)).length;
+      if (n && !(await ask(t('unanswered', { n }), [{ label: t('cancel'), value: false }, { label: t('handYes'), value: true, cls: 'go' }]))) return;
+    } else {
+      const left = S.results.filter(r => !(r && r.verdict)).length;
+      if (left && !(await ask(t('finishPractice'), [{ label: t('cancel'), value: false }, { label: t('finish'), value: true, cls: 'go' }]))) return;
+    }
+  }
+  clearInterval(S.tick);
+  T.endedAt = Date.now();
+  const openIdx = [];
+  T.questions.forEach((q, i) => {
+    if (S.results[i] && S.results[i].verdict) return;
+    if (OPEN.has(q.kind)){ if (answered(i)) openIdx.push(i); else S.results[i] = { score: 0, max: pts(q), verdict: 'empty' }; }
+    else S.results[i] = gradeLocal(i);
+  });
+  while (openIdx.length){
+    busy(true, t('gradingOpen'));
+    try {
+      for (let k = 0; k < openIdx.length; k += 8) await gradeOpen(openIdx.slice(k, k + 8));
+      openIdx.length = 0;
+    } catch (e) {
+      busy(false);
+      const again = isPermanent(e) ? false : await ask(errMsg(e), [{ label: t('skipGrade'), value: false }, { label: t('retry'), value: true, cls: 'primary' }]);
+      if (!again){ openIdx.forEach(i => { if (!(S.results[i] && S.results[i].verdict)) S.results[i] = { score: 0, max: pts(T.questions[i]), verdict: 'ungraded' }; }); openIdx.length = 0; }
+      else { for (let k = openIdx.length - 1; k >= 0; k--) if (S.results[openIdx[k]] && S.results[openIdx[k]].verdict) openIdx.splice(k, 1); }
+    }
+  }
+  busy(false);
+  T.done = true;
+  saveResult();
+  show('results'); renderResults();
+}
+function totals(){
+  const T = S.test;
+  let got = 0, max = 0, ok = 0;
+  T.questions.forEach((q, i) => { const r = S.results[i]; max += pts(q); if (r){ got += r.score || 0; if (r.verdict === 'correct') ok++; } });
+  return { got, max, ok, grade: max ? Math.round(got / max * 200) / 10 : 0 };
+}
+function saveResult(){
+  const T = S.test; if (T.saved) return;
+  T.saved = true;
+  const { grade } = totals();
+  const h = getHistory().filter(e => e.id !== T.id);
+  h.unshift({ id: T.id, title: T.title, date: Date.now(), mode: T.mode, timed: !!T.timerSec, grade, questions: T.questions });
+  saveHistory(h);
+}
+
+/* ---------- results ---------- */
+function ansText(q, a){
+  if (!a) return t('noAnswer');
+  if (a.sel) return a.sel.length ? a.sel.map(j => optLetter(q, j) + '. ' + q.options[j]).join('\n') : t('noAnswer');
+  if (a.blanks) return a.blanks.map(x => x || '…').join(' · ');
+  return (a.text || '').trim() || t('noAnswer');
+}
+function goodText(q){
+  if (CHOICE.has(q.kind)) return q.answer.map(j => optLetter(q, j) + '. ' + q.options[j]).join('\n');
+  if (q.kind === 'trous') return q.blanks.map(b => b[0]).join(' · ');
+  return q.model_answer;
+}
+function barColor(p){ return p >= 70 ? 'var(--green)' : p >= 50 ? 'var(--blue)' : 'var(--bad)'; }
+function groupRows(keyFn, labelFn){
+  const g = {};
+  S.test.questions.forEach((q, i) => { const k = keyFn(q); if (!g[k]) g[k] = { got: 0, max: 0, n: 0 }; g[k].got += (S.results[i] && S.results[i].score) || 0; g[k].max += pts(q); g[k].n++; });
+  return Object.entries(g).map(([k, v]) => ({ label: labelFn(k), p: v.max ? Math.round(100 * v.got / v.max) : 0, n: v.n })).sort((a, b) => a.p - b.p);
+}
+function rowsHTML(rows){
+  return rows.map(r => `<div class="brow"><span class="bl" title="${esc(r.label)}">${esc(r.label)} <span style="color:var(--muted)">(${r.n})</span></span><div class="btrack"><div style="width:${Math.max(3, r.p)}%;background:${barColor(r.p)}"></div></div><span class="bp">${r.p}%</span></div>`).join('');
+}
+function renderResults(){
+  const T = S.test, { got, max, ok, grade } = totals();
+  const lvl = grade >= 16 ? t('lvl16') : grade >= 12 ? t('lvl12') : grade >= 10 ? t('lvl10') : t('lvl0');
+  const col = grade >= 14 ? 'var(--green)' : grade >= 10 ? 'var(--blue)' : 'var(--bad)';
+  const C = 2 * Math.PI * 72, frac = Math.max(0, Math.min(1, grade / 20));
+  const secs = Math.round(((T.endedAt || Date.now()) - T.startedAt) / 1000);
+  const dur = secs >= 3600 ? `${Math.floor(secs / 3600)}h${String(Math.floor(secs % 3600 / 60)).padStart(2, '0')}` : `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+  const wrong = T.questions.filter((_, i) => S.results[i] && S.results[i].verdict !== 'correct').length;
+  const topics = groupRows(q => q.topic || '…', k => k);
+  const kinds = groupRows(q => q.kind, k => t('k_' + k));
+  let h = `<div class="res-hero">
+    <div class="ring" role="img" aria-label="${fmt(grade)} / 20">
+      <svg width="170" height="170" viewBox="0 0 170 170"><circle cx="85" cy="85" r="72" fill="none" stroke="var(--line)" stroke-width="12"/><circle cx="85" cy="85" r="72" fill="none" stroke="${col}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - frac)}"/></svg>
+      <div class="val"><span class="big">${fmt(grade)}</span><span class="small">${t('outOf')}</span></div>
+    </div>
+    <div class="res-info">
+      <h2 style="color:${col}">${lvl}</h2>
+      <p class="res-sub">${esc(T.title)} · ${T.mode === 'exam' ? t('examL') : t('practiceL')}</p>
+      <div class="stats">
+        <div class="stat"><b>${ok} / ${T.questions.length}</b><span>${t('correctCount')}</span></div>
+        <div class="stat"><b>${fmt(got)} / ${fmt(max)}</b><span>${t('pointsL')}</span></div>
+        <div class="stat"><b>${dur}</b><span>${t('timeL')}</span></div>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn primary" data-ract="errors" ${wrong ? '' : 'disabled'}>${t('retakeErrors')}${wrong ? ` (${wrong})` : ''}</button>
+        <button type="button" class="btn" data-ract="again">${t('retakeAll')}</button>
+        <button type="button" class="btn" data-ract="copy">${t('copyTest')}</button>
+        <button type="button" class="btn ghost" data-ract="new">${t('newTest')}</button>
+      </div>
+    </div>
+  </div>
+  <div class="break">
+    <div class="bcard"><h3>${t('byTopic')}</h3><p class="note">${t('byTopicNote')}</p>${rowsHTML(topics.slice(0, 8))}</div>
+    <div class="bcard"><h3>${t('byKind')}</h3>${rowsHTML(kinds)}</div>
+  </div>
+  <div class="review"><h3>${t('review')}</h3>`;
+  h += T.questions.map((q, i) => {
+    const r = S.results[i] || { score: 0, max: pts(q), verdict: 'empty' };
+    const icon = { correct: '✓', partial: '½', incorrect: '✕', empty: '–', ungraded: '?' }[r.verdict] || '';
+    return `<details class="ritem"${r.verdict !== 'correct' ? ' open' : ''}><summary><span class="rdot rd-${r.verdict}" aria-label="${esc(verdictLabel(r.verdict))}">${icon}</span><span class="rn">${i + 1}</span><span class="rq">${esc(q.question)}</span><span class="rs">${fmt(r.score)}/${fmt(r.max)}</span></summary>
+      <div class="rbody">
+        ${q.context ? `<div class="context"><div class="ctx-label">${t('caseLabel')}</div><p>${esc(q.context)}</p></div>` : ''}
+        <dl class="kv"><dt>${t('yourAns')}</dt><dd>${esc(ansText(q, S.answers[i]))}</dd><dt>${t('goodAns')}</dt><dd>${esc(goodText(q))}</dd></dl>
+        ${MULTI.has(q.kind) && r.disc > 0 ? `<p class="fb-note">${r.disc === 1 ? t('disc1') : t('discN', { n: r.disc })}</p>` : ''}
+        ${r.feedback ? `<p>${esc(r.feedback)}</p>` : ''}
+        ${r.missing && r.missing.length ? `<p><b>${t('missing')}</b> ${r.missing.map(esc).join(' · ')}</p>` : ''}
+        ${q.explanation ? `<p><b>${t('why')}.</b> ${esc(q.explanation)}</p>` : ''}
+        ${q.source ? `<blockquote class="src"><span>${t('fromCourse')}</span>${esc(q.source)}</blockquote>` : ''}
+      </div></details>`;
+  }).join('') + `</div>`;
+  $('#resBody').innerHTML = h;
+}
+function testAsText(T){
+  const lines = [T.title, ''];
+  T.questions.forEach((q, i) => {
+    lines.push(`${i + 1}. [${t('ks_' + q.kind)}] ${q.context ? q.context + '\n   ' : ''}${q.question}`);
+    if (CHOICE.has(q.kind)) q.options.forEach((o, j) => lines.push(`   ${optLetter(q, j)}. ${o}`));
+    lines.push('');
+  });
+  lines.push(t('answerKey'), '');
+  T.questions.forEach((q, i) => {
+    lines.push(`${i + 1}. ${CHOICE.has(q.kind) ? q.answer.map(j => optLetter(q, j)).join(', ') : goodText(q)}`);
+    if (q.explanation) lines.push(`   ${q.explanation}`);
+  });
+  return lines.join('\n');
+}
+
+/* ---------- events ---------- */
+function bind(){
+  $('#langFr').onclick = () => { S.lang = 'fr'; store.set('stetho.lang', 'fr'); applyI18n(); };
+  $('#langEn').onclick = () => { S.lang = 'en'; store.set('stetho.lang', 'en'); applyI18n(); };
+  $('#homeLink').onclick = e => { e.preventDefault(); if ($('#view-test').hidden) show('setup'); };
+
+  const drop = $('#drop');
+  ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files.length) addFiles([...e.dataTransfer.files]); });
+  $('#fileInput').addEventListener('change', e => { addFiles([...e.target.files]); e.target.value = ''; });
+  $('#fileList').addEventListener('click', e => { const b = e.target.closest('[data-rm]'); if (!b) return; S.files = S.files.filter(f => f.id !== b.dataset.rm); renderFiles(); });
+
+  $('#typeChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-k]'); if (!b) return;
+    const k = b.dataset.k;
+    if (S.kinds.has(k)) { if (S.kinds.size > 1) S.kinds.delete(k); } else S.kinds.add(k);
+    renderSetup();
+  });
+  $('#timerToggle').addEventListener('change', e => { S.timer = e.target.checked; });
+  $('#genBtn').onclick = generate;
+  $('#stopBtn').onclick = () => { S.genCtl && S.genCtl.abort(); };
+
+  $('#historyList').addEventListener('click', e => {
+    const r = e.target.closest('[data-retake]'), d = e.target.closest('[data-hdel]');
+    if (r){ const en = getHistory().find(x => x.id === r.dataset.retake); if (en) startTest(en.questions, en.title, en.mode, en.timed); }
+    if (d){ saveHistory(getHistory().filter(x => x.id !== d.dataset.hdel)); renderHistory(); }
+  });
+
+  $('#quitBtn').onclick = async () => {
+    if (S.test && !S.test.done && S.answers.some((_, i) => answered(i))){
+      if (!(await ask(t('quitConfirm'), [{ label: t('cancel'), value: false }, { label: t('quit'), value: true, cls: 'primary' }]))) return;
+    }
+    clearInterval(S.tick);
+    if (S.test && S.test.done) { show('results'); return; }
+    S.test = null; show('setup'); renderHistory();
+  };
+  $('#finishBtn').onclick = () => { if (S.test && S.test.done) { show('results'); renderResults(); } else finishTest(false); };
+  $('#qMap').addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (!b) return; S.idx = +b.dataset.go; renderQ(); renderMap(); });
+
+  const card = $('#qCard');
+  card.addEventListener('click', e => {
+    const T = S.test; if (!T) return;
+    const o = e.target.closest('[data-opt]');
+    if (o && !o.disabled){
+      const q = T.questions[S.idx], j = +o.dataset.opt;
+      const a = S.answers[S.idx] || { sel: [] };
+      if (MULTI.has(q.kind)) a.sel = a.sel.includes(j) ? a.sel.filter(x => x !== j) : [...a.sel, j].sort();
+      else a.sel = [j];
+      S.answers[S.idx] = a; renderQ(); renderMap();
+      return;
+    }
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const act = b.dataset.act;
+    if (act === 'prev' && S.idx > 0){ S.idx--; renderQ(); renderMap(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    if (act === 'next' && S.idx < T.questions.length - 1){ S.idx++; renderQ(); renderMap(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    if (act === 'check') checkCurrent();
+    if (act === 'finish') { if (T.done) { show('results'); renderResults(); } else finishTest(T.mode === 'practice' && S.results.every(r => r && r.verdict)); }
+  });
+  card.addEventListener('input', e => {
+    const T = S.test; if (!T) return;
+    if (e.target.matches('[data-open]')) S.answers[S.idx] = { text: e.target.value };
+    if (e.target.matches('[data-blank]')){
+      const q = T.questions[S.idx];
+      const a = S.answers[S.idx] || { blanks: q.blanks.map(() => '') };
+      a.blanks[+e.target.dataset.blank] = e.target.value;
+      e.target.size = Math.max(9, e.target.value.length + 2);
+      S.answers[S.idx] = a;
+    }
+    renderMap();
+  });
+  document.addEventListener('keydown', e => {
+    if ($('#view-test').hidden || !S.test || !$('#dlg').hidden || !$('#gate').hidden) return;
+    if (e.target.matches('input,textarea,select')) return;
+    const q = S.test.questions[S.idx];
+    if (CHOICE.has(q.kind)){
+      const k = e.key.toUpperCase();
+      let j = 'ABCDE'.indexOf(k); if (j < 0 && /^[1-5]$/.test(k)) j = +k - 1;
+      if (q.kind === 'vf'){ if (k === 'V' || k === 'T') j = 0; if (k === 'F') j = 1; }
+      const btn = j >= 0 ? card.querySelector(`[data-opt="${j}"]`) : null;
+      if (btn && !btn.disabled){ btn.click(); e.preventDefault(); return; }
+    }
+    if (e.key === 'Enter'){ const b = card.querySelector('.q-nav .right .btn'); if (b && !b.disabled){ b.click(); e.preventDefault(); } }
+    if (e.key === 'ArrowRight' && S.idx < S.test.questions.length - 1){ S.idx++; renderQ(); renderMap(); }
+    if (e.key === 'ArrowLeft' && S.idx > 0){ S.idx--; renderQ(); renderMap(); }
+  });
+
+  $('#resBody').addEventListener('click', async e => {
+    const b = e.target.closest('[data-ract]'); if (!b) return;
+    const T = S.test; const act = b.dataset.ract;
+    if (act === 'errors'){
+      const qs = T.questions.filter((_, i) => S.results[i] && S.results[i].verdict !== 'correct');
+      if (!qs.length) { toast(t('noErrors')); return; }
+      startTest(qs, `${T.title.replace(/ · .*$/, '')} · ${t('errorsSuffix')}`, T.mode, !!T.timerSec);
+    }
+    if (act === 'again') startTest(T.questions, T.title, T.mode, !!T.timerSec);
+    if (act === 'new'){ S.test = null; show('setup'); renderHistory(); }
+    if (act === 'copy'){
+      try { await navigator.clipboard.writeText(testAsText(T)); toast(t('copied')); }
+      catch { toast(t('copyFail')); }
+    }
+  });
+}
+
+/* ---------- init ---------- */
+S.files.push({ id: 'example', name: 'example.txt', ext: 'txt', size: EXAMPLE.length, status: 'ready', text: EXAMPLE, images: [], pages: 0, unit: '', scanned: false, example: true });
+bind();
+applyI18n();
+
+/* ---------- server connection (Vercel function holding the API key) ---------- */
+const TOK_KEY = 'stetho.token';
+let memTok = '';
+function getTok(){ try { return localStorage.getItem(TOK_KEY) || memTok; } catch { return memTok; } }
+function setTok(v){ memTok = v || ''; try { v ? localStorage.setItem(TOK_KEY, v) : localStorage.removeItem(TOK_KEY); } catch {} }
+function authHeaders(){ const tk = getTok(); return tk ? { authorization: 'Bearer ' + tk } : {}; }
+try { localStorage.removeItem('stetho.pw'); } catch {}
+
+async function smallJpeg(blob){
+  const bmp = await createImageBitmap(blob);
+  const scale = Math.min(1, Math.sqrt(1.15e6 / (bmp.width * bmp.height)));
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(bmp.width * scale)); c.height = Math.max(1, Math.round(bmp.height * scale));
+  const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+  ctx.drawImage(bmp, 0, 0, c.width, c.height);
+  const url = c.toDataURL('image/jpeg', 0.8);
+  return { media_type: 'image/jpeg', data: url.slice(url.indexOf(',') + 1) };
+}
+async function packImages(blobs){
+  const out = []; let total = 0;
+  for (const b of blobs || []){
+    try {
+      const im = await smallJpeg(b);
+      if (total + im.data.length > 3.4e6) break; // Vercel accepts request bodies up to about 4.5 MB
+      total += im.data.length; out.push(im);
+    } catch {}
+  }
+  return out;
+}
+const STOP = '\n[[STETHO:';
+async function callClaude(prompt, opts = {}){
+  const { signal, onText, images, maxTokens, purpose, part } = opts;
+  const imgs = await packImages(images);
+  let res;
+  try {
+    res = await fetch('/api/claude', {
+      method: 'POST', signal,
+      headers: { 'content-type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ prompt, images: imgs, max_tokens: maxTokens || 8000, purpose: purpose || 'generate', part: part || 1 })
+    });
+  } catch (e) { throw { code: (signal && signal.aborted) ? 'cancelled' : 'network' }; }
+  if (res.status === 401) throw { code: 'unauthorized' };
+  if (!res.ok){ let j = {}; try { j = await res.json(); } catch {} throw { code: j.error || (res.status === 429 ? 'rate_limited' : res.status === 413 ? 'prompt_too_large' : 'upstream_error') }; }
+  const reader = res.body.getReader(); const dec = new TextDecoder();
+  let raw = '';
+  try {
+    for (;;){
+      const { done, value } = await reader.read();
+      if (done) break;
+      raw += dec.decode(value, { stream: true });
+      const visible = raw.split(STOP)[0];
+      if (onText && visible.trim()) onText({ text: visible });
+    }
+  } catch (e) { throw { code: (signal && signal.aborted) ? 'cancelled' : 'network', text: raw.split(STOP)[0] }; }
+  const text = raw.split(STOP)[0];
+  const m = raw.match(/\n\[\[STETHO:([a-z_]+)\]\]/);
+  if (m && m[1] !== 'truncated') throw { code: m[1], text };
+  if (!text.trim()) throw { code: 'empty_completion' };
+  return { text, truncated: !!m };
+}
+function parseLoose(text){
+  const tryParse = s => { try { return JSON.parse(s); } catch { return undefined; } };
+  let v = tryParse(text.trim()); if (v !== undefined) return v;
+  const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/); if (fence){ v = tryParse(fence[1].trim()); if (v !== undefined) return v; }
+  const a = text.search(/[\[{]/), b = Math.max(text.lastIndexOf('}'), text.lastIndexOf(']'));
+  if (a >= 0 && b > a){ v = tryParse(text.slice(a, b + 1)); if (v !== undefined) return v; }
+  // cut short: keep every complete question
+  const q = text.indexOf('"questions"');
+  if (q >= 0){
+    let end = text.length;
+    for (let k = 0; k < 80; k++){
+      end = text.lastIndexOf('}', end - 1);
+      if (end <= q) break;
+      v = tryParse(text.slice(text.indexOf('{'), end + 1) + ']}');
+      if (v !== undefined) return v;
+    }
+  }
+  return undefined;
+}
+const AI = {
+  async json(prompt, opts = {}){
+    const r = await callClaude(prompt, opts);
+    const v = parseLoose(r.text);
+    if (v === undefined) throw { code: 'invalid_json', text: r.text };
+    return v;
+  }
+};
+S.sample = AI;
+S.maxImages = 10;
+
+/* ---------- accounts ---------- */
+function authTab(tab){
+  $('#authTabs').querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === tab)));
+  $('#authTabs').hidden = false;
+  $('#loginForm').hidden = tab !== 'login';
+  $('#signupForm').hidden = tab !== 'signup';
+  $('#pendingBox').hidden = true;
+  $('#loginErr').textContent = ''; $('#signupErr').textContent = '';
+  setTimeout(() => (tab === 'login' ? $('#loginEmail').value ? $('#loginPw') : $('#loginEmail') : $('#suName')).focus(), 30);
+}
+function showGate(err, tab){
+  setTok(''); S.user = null; renderUser();
+  $('#gate').hidden = false;
+  authTab(tab || 'login');
+  $('#loginPw').value = '';
+  $('#loginErr').textContent = err || '';
+}
+function setUser(u){
+  S.user = u; renderUser(); updateGenHint();
+}
+async function authCall(body){
+  let r;
+  try {
+    r = await fetch('/api/auth', { method: 'POST', headers: { 'content-type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) });
+  } catch { return { error: 'network' }; }
+  let j = {}; try { j = await r.json(); } catch {}
+  if (!r.ok) return { error: j.error || 'upstream_error' };
+  return j;
+}
+$('#authTabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) authTab(b.dataset.tab); });
+$('#backToLogin').onclick = () => authTab('login');
+$('#loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = e.submitter || $('#loginForm button[type=submit]');
+  btn.disabled = true; $('#loginErr').textContent = t('working');
+  const j = await authCall({ action: 'login', email: $('#loginEmail').value, password: $('#loginPw').value });
+  btn.disabled = false;
+  if (j.error){ $('#loginErr').textContent = errMsg({ code: j.error }); return; }
+  setTok(j.token); setUser(j.user);
+  $('#loginPw').value = ''; $('#gate').hidden = true;
+});
+$('#signupForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = e.submitter || $('#signupForm button[type=submit]');
+  btn.disabled = true; $('#signupErr').textContent = t('working');
+  const email = $('#suEmail').value;
+  const j = await authCall({ action: 'signup', name: $('#suName').value, email, password: $('#suPw').value });
+  btn.disabled = false;
+  if (j.error && j.error !== 'pending'){ $('#signupErr').textContent = errMsg({ code: j.error }); return; }
+  $('#signupErr').textContent = '';
+  $('#suPw').value = ''; $('#loginEmail').value = email;
+  $('#signupForm').hidden = true; $('#authTabs').hidden = true; $('#pendingBox').hidden = false;
+});
+$('#logoutBtn').onclick = async () => {
+  if (S.test && !S.test.done && S.answers.some((_, i) => answered(i))){
+    if (!(await ask(t('quitConfirm'), [{ label: t('cancel'), value: false }, { label: t('logout'), value: true, cls: 'primary' }]))) return;
+    clearInterval(S.tick); S.test = null; show('setup');
+  }
+  await authCall({ action: 'logout' });
+  showGate();
+};
+(async () => {
+  if (!getTok()) { showGate(); return; }
+  try {
+    const r = await fetch('/api/auth', { headers: authHeaders() });
+    let j = {}; try { j = await r.json(); } catch {}
+    if (r.status === 401 || r.status === 403) { showGate(r.status === 403 ? errMsg({ code: j.error }) : ''); return; }
+    if (r.ok && j.user) setUser(j.user);
+    else if (j.error) toast(errMsg({ code: j.error }));
+  } catch { toast(t('eNetwork')); }
+})();
+renderMeter();
+</script>
+</body>
+</html>

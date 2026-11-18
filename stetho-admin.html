@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Stétho Admin</title>
+<style>
+:root{--bg:#F3F8FB;--surface:#fff;--ink:#0C2A3E;--muted:#587285;--line:#D9E6EE;--blue:#1C63CC;--green:#0B9470;--green-soft:#E2F5EE;--blue-soft:#E7F0FC;--bad:#C2413A;--bad-soft:#FBEBEA;--warn:#B97C0B;--warn-soft:#FBF2DF}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 18px 60px;display:grid;gap:20px}
+h1{margin:0;font-size:24px}h2{margin:0 0 12px;font-size:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 12px;font:inherit;font-weight:600;font-size:13.5px;cursor:pointer}
+.btn:hover{border-color:var(--blue)}
+.btn.go{background:var(--green);border-color:var(--green);color:#fff}
+.btn.bad{color:var(--bad)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+input{border:1px solid var(--line);border-radius:9px;padding:9px 12px;font:inherit;min-width:240px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl{overflow-x:auto}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px}
+.s-active{background:var(--green-soft);color:var(--green)}.s-pending{background:var(--warn-soft);color:var(--warn)}
+.s-refused,.s-disabled{background:var(--bad-soft);color:var(--bad)}.s-ended{background:var(--bad-soft);color:var(--bad)}
+.muted{color:var(--muted);font-size:13px}
+.big{font-size:34px;font-weight:800;line-height:1}
+.kpis{display:flex;gap:14px;flex-wrap:wrap}
+.kpi{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:170px}
+.notice{background:var(--blue-soft);border:1px solid var(--blue);border-radius:12px;padding:12px 14px}
+.err{color:var(--bad)}
+.pend{display:grid;gap:10px}
+.pitem{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:12px}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+code{font-size:15px;background:var(--surface);padding:2px 6px;border-radius:6px;border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="row" style="justify-content:space-between">
+    <h1>Stétho · Admin</h1>
+    <div class="row"><button class="btn" id="refresh" hidden>Actualiser</button><button class="btn" id="out" hidden>Quitter</button></div>
+  </div>
+
+  <form class="card row" id="login">
+    <input type="password" id="pw" placeholder="Mot de passe admin" autocomplete="current-password">
+    <button class="btn primary" type="submit">Entrer</button>
+    <span class="err" id="loginErr"></span>
+  </form>
+
+  <div id="app" hidden>
+    <div id="notice" class="notice" hidden></div>
+
+    <section class="card" style="margin-top:20px">
+      <h2>Pilote</h2>
+      <div class="kpis" id="kpis"></div>
+      <p class="muted">Objectif du pilote : 20 à 30 étudiants actifs chaque semaine sans relance. Actif = au moins 1 test généré dans la semaine (lundi à dimanche, heure de Casablanca).</p>
+      <div class="tbl"><table id="weeks"></table></div>
+    </section>
+
+    <section class="card" style="margin-top:20px">
+      <h2>Demandes en attente <span id="pendCount" class="muted"></span></h2>
+      <div id="pending" class="pend"></div>
+    </section>
+
+    <section class="card" style="margin-top:20px">
+      <h2>Comptes</h2>
+      <div class="tbl"><table id="users"></table></div>
+    </section>
+  </div>
+</div>
+
+<script>
+"use strict";
+var KEY = 'stetho.admin';
+var DAY = 86400000;
+var data = null;
+function $(s){ return document.querySelector(s); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function getPw(){ try { return sessionStorage.getItem(KEY) || ''; } catch(e){ return window.__pw || ''; } }
+function setPw(v){ window.__pw = v; try { v ? sessionStorage.setItem(KEY, v) : sessionStorage.removeItem(KEY); } catch(e){} }
+function d(ms){ return ms ? new Date(ms).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '·'; }
+function dt(ms){ return ms ? new Date(ms).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '·'; }
+function usd(n){ return '$' + (Number(n) || 0).toFixed(2); }
+
+async function api(action, extra){
+  var body = Object.assign({ action: action }, extra || {});
+  var r = await fetch('/api/admin', { method: 'POST', headers: { 'content-type': 'application/json', 'x-admin-password': getPw() }, body: JSON.stringify(body) });
+  var j = {}; try { j = await r.json(); } catch(e){}
+  if (!r.ok) throw Object.assign(new Error(j.error || 'error'), { code: j.error || 'error', status: r.status });
+  return j;
+}
+var ERR = { unauthorized: 'Mot de passe admin incorrect.', too_many_attempts: 'Trop de tentatives. Réessaie dans 15 minutes.', not_configured: 'ADMIN_PASSWORD ou la base Redis manque sur Vercel.', upstream_error: 'Erreur de la base. Réessaie.' };
+
+async function load(){
+  try {
+    data = await api('list');
+    $('#login').hidden = true; $('#app').hidden = false; $('#refresh').hidden = false; $('#out').hidden = false;
+    render();
+  } catch(e){
+    if (e.status === 401){ setPw(''); }
+    $('#login').hidden = false; $('#app').hidden = true;
+    $('#loginErr').textContent = ERR[e.code] || 'Erreur : ' + e.code;
+  }
+}
+
+function status(u){
+  if (u.status === 'active' && u.trialEnd <= Date.now()) return ['ended', 'essai terminé'];
+  return [u.status, { active: 'actif', pending: 'en attente', refused: 'refusé', disabled: 'désactivé' }[u.status] || u.status];
+}
+
+function render(){
+  var w = data.weeks[0] || { active: 0, tests: 0, usd: 0 };
+  var approved = data.users.filter(function(u){ return u.status === 'active'; }).length;
+  $('#kpis').innerHTML =
+    '<div class="kpi"><div class="big">' + w.active + '</div><div class="muted">actifs cette semaine</div></div>' +
+    '<div class="kpi"><div class="big">' + w.tests + '</div><div class="muted">tests cette semaine</div></div>' +
+    '<div class="kpi"><div class="big">' + approved + '</div><div class="muted">comptes validés</div></div>' +
+    '<div class="kpi"><div class="big">' + usd(data.todayUsd) + '</div><div class="muted">dépensé aujourd’hui (limite ' + usd(data.caps.total) + ', ' + usd(data.caps.user) + ' par personne)</div></div>';
+
+  $('#weeks').innerHTML = '<tr><th>Semaine du</th><th>Actifs</th><th>Tests</th><th>Coût</th></tr>' +
+    data.weeks.map(function(x){ return '<tr><td>' + esc(x.week.split('-').reverse().join('/')) + '</td><td class="num">' + x.active + '</td><td class="num">' + x.tests + '</td><td class="num">' + usd(x.usd) + '</td></tr>'; }).join('');
+
+  var pend = data.users.filter(function(u){ return u.status === 'pending'; }).sort(function(a, b){ return a.created - b.created; });
+  $('#pendCount').textContent = pend.length ? '(' + pend.length + ')' : '';
+  $('#pending').innerHTML = pend.length ? pend.map(function(u){
+    return '<div class="pitem"><div><b>' + esc(u.name) + '</b><div class="muted">' + esc(u.email) + ' · demandé le ' + esc(dt(u.created)) + '</div></div>' +
+      '<div class="acts"><button class="btn go" data-a="approve" data-e="' + esc(u.email) + '">Valider (' + data.trialDays + ' jours d’essai)</button><button class="btn bad" data-a="refuse" data-e="' + esc(u.email) + '">Refuser</button></div></div>';
+  }).join('') : '<p class="muted">Aucune demande.</p>';
+
+  var rest = data.users.filter(function(u){ return u.status !== 'pending'; });
+  $('#users').innerHTML = '<tr><th>Nom</th><th>Statut</th><th>Fin d’essai</th><th>Tests 7 j</th><th>Tests 28 j</th><th>Semaines actives /4</th><th>Coût 30 j</th><th>Vu le</th><th></th></tr>' +
+    (rest.length ? rest.map(function(u){
+      var s = status(u);
+      var left = u.trialEnd ? Math.ceil((u.trialEnd - Date.now()) / DAY) : 0;
+      var acts = '';
+      if (u.status === 'active') acts += '<button class="btn" data-a="extend" data-e="' + esc(u.email) + '">+30 jours</button>';
+      if (u.status === 'active') acts += '<button class="btn" data-a="reset" data-e="' + esc(u.email) + '">Nouveau mot de passe</button>';
+      if (u.status === 'active') acts += '<button class="btn bad" data-a="disable" data-e="' + esc(u.email) + '">Désactiver</button>';
+      if (u.status === 'disabled') acts += '<button class="btn" data-a="enable" data-e="' + esc(u.email) + '">Réactiver</button>';
+      if (u.status === 'refused') acts += '<button class="btn go" data-a="approve" data-e="' + esc(u.email) + '">Valider</button>';
+      acts += '<button class="btn bad" data-a="delete" data-e="' + esc(u.email) + '">Supprimer</button>';
+      return '<tr><td><b>' + esc(u.name) + '</b><div class="muted">' + esc(u.email) + '</div></td>' +
+        '<td><span class="pill s-' + s[0] + '">' + s[1] + '</span></td>' +
+        '<td class="num">' + (u.trialEnd ? esc(d(u.trialEnd)) + '<div class="muted">' + (left > 0 ? left + ' j restants' : 'terminé') + '</div>' : '·') + '</td>' +
+        '<td class="num">' + u.tests7 + '</td><td class="num">' + u.tests28 + '</td><td class="num">' + u.weeks4 + '</td>' +
+        '<td class="num">' + usd(u.usd30) + '</td><td class="num">' + esc(dt(u.lastSeen)) + '</td>' +
+        '<td><div class="acts">' + acts + '</div></td></tr>';
+    }).join('') : '<tr><td colspan="9" class="muted">Aucun compte pour l’instant.</td></tr>');
+}
+
+document.addEventListener('click', async function(e){
+  var b = e.target.closest('[data-a]'); if (!b) return;
+  var a = b.dataset.a, email = b.dataset.e;
+  var u = data.users.find(function(x){ return x.email === email; }) || { name: email };
+  if (a === 'delete' && !confirm('Supprimer définitivement le compte de ' + u.name + ' et ses statistiques ?')) return;
+  if (a === 'disable' && !confirm('Désactiver le compte de ' + u.name + ' ?')) return;
+  b.disabled = true;
+  try {
+    var r = await api(a, { email: email, days: 30 });
+    if (a === 'reset') showNotice('Nouveau mot de passe pour <b>' + esc(u.name) + '</b> : <code>' + esc(r.password) + '</code><br><span class="muted">Envoie le lui. Ses anciennes connexions sont fermées.</span>');
+    else if (a === 'approve') showNotice('<b>' + esc(u.name) + '</b> est validé(e). Préviens la personne qu’elle peut se connecter avec ' + esc(email) + '.');
+    await load();
+  } catch(err){
+    b.disabled = false;
+    showNotice('<span class="err">' + esc(ERR[err.code] || 'Erreur : ' + err.code) + '</span>');
+  }
+});
+function showNotice(html){ var n = $('#notice'); n.innerHTML = html; n.hidden = false; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+$('#login').addEventListener('submit', function(e){ e.preventDefault(); setPw($('#pw').value.trim()); $('#loginErr').textContent = '…'; load(); });
+$('#refresh').onclick = function(){ $('#notice').hidden = true; load(); };
+$('#out').onclick = function(){ setPw(''); location.reload(); };
+if (getPw()) load();
+</script>
+</body>
+</html>

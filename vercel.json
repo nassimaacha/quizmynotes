@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/stetho.html" },
+    { "source": "/admin", "destination": "/stetho-admin.html" }
+  ]
+}
