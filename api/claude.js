@@ -2,7 +2,7 @@
 // Keeps the API key on the server, only answers logged in users with an active trial,
 // applies daily spending caps and records usage for the admin page.
 import {
-  hasDb, authUser, usageToday, recordUsage, DAILY_USER_USD, DAILY_TOTAL_USD
+  hasDb, authUser, usageToday, recordUsage, isPremium, DAILY_USER_USD, DAILY_TOTAL_USD, DAILY_PREMIUM_USD
 } from '../lib/store.js';
 
 const API_URL = 'https://api.anthropic.com/v1/messages';
@@ -27,7 +27,9 @@ export async function POST(request) {
   try { auth = await authUser(request); } catch (e) { console.error('auth', e); return fail('upstream_error', 502); }
   if (auth.error) return fail(auth.error, auth.status);
   const user = auth.user;
-  if ((Number(user.trialEnd) || 0) <= Date.now()) return fail('trial_over', 402);
+  const premium = isPremium(user);
+  if (!premium && (Number(user.trialEnd) || 0) <= Date.now()) return fail('trial_over', 402);
+  const userCap = premium ? DAILY_PREMIUM_USD : DAILY_USER_USD;
 
   let body;
   try { body = await request.json(); } catch { return fail('invalid_request', 400); }
@@ -44,7 +46,7 @@ export async function POST(request) {
   let used;
   try { used = await usageToday(user.email); } catch (e) { console.error('usage read', e); return fail('upstream_error', 502); }
   if (used.all >= DAILY_TOTAL_USD) return fail('quota_global', 429);
-  if (purpose === 'generate' && used.user >= DAILY_USER_USD * (part === 1 ? 1 : 1.5)) return fail('quota_user', 429);
+  if (purpose === 'generate' && used.user >= userCap * (part === 1 ? 1 : 1.5)) return fail('quota_user', 429);
 
   const images = purpose === 'grade' ? [] : (Array.isArray(body.images) ? body.images : [])
     .filter(im => im && IMAGE_TYPES.has(im.media_type) && typeof im.data === 'string' && im.data.length > 0)

@@ -2,7 +2,7 @@
 // New accounts start as "pending" until approved on the admin page.
 import {
   db, pipe, hasDb, json, getUser, publicUser, hashPw, checkPw, cleanEmail, cleanName,
-  newSession, endSession, authUser, bearer, dayKey
+  newSession, endSession, authUser, bearer, dayKey, isPremium, readTheme, ACCENTS
 } from '../lib/store.js';
 
 const MAX_FAILS = 10;      // wrong passwords before a 15 minute lock
@@ -29,11 +29,22 @@ export async function POST(request) {
     if (b.action === 'signup') return await signup(b);
     if (b.action === 'login') return await login(b);
     if (b.action === 'logout') { await endSession(bearer(request)); return json({ ok: true }); }
+    if (b.action === 'theme') return await saveTheme(request, b);
   } catch (e) {
     console.error('auth', b && b.action, e);
     return json({ error: 'upstream_error' }, 502);
   }
   return json({ error: 'invalid_request' }, 400);
+}
+
+// Premium only: dark mode and second color, saved on the account.
+async function saveTheme(request, b) {
+  const a = await authUser(request);
+  if (a.error) return json({ error: a.error }, a.status);
+  if (!isPremium(a.user)) return json({ error: 'not_premium' }, 403);
+  const theme = { dark: b.dark === true, accent: ACCENTS[b.accent] ? b.accent : 'green' };
+  await db('HSET', 'u:' + a.user.email, 'theme', JSON.stringify(theme));
+  return json({ theme: readTheme({ theme: JSON.stringify(theme) }) });
 }
 
 async function signup(b) {

@@ -41,15 +41,6 @@
   --r:14px;
   color-scheme:light;
 }
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#08161F;--surface:#0F2230;--ink:#E4EEF4;--muted:#8DA6B6;--line:#1E3646;
-    --blue:#6AA5F5;--green:#3CCB9E;--blue-soft:#11284A;--green-soft:#0D3029;--grid:rgba(60,203,158,.06);
-    --bad:#F07C74;--bad-soft:#3A1A1A;--warn:#E6B04A;--warn-soft:#33270F;
-    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
-    color-scheme:dark;
-  }
-}
 :root[data-theme="dark"]{
   --bg:#08161F;--surface:#0F2230;--ink:#E4EEF4;--muted:#8DA6B6;--line:#1E3646;
   --blue:#6AA5F5;--green:#3CCB9E;--blue-soft:#11284A;--green-soft:#0D3029;--grid:rgba(60,203,158,.06);
@@ -315,6 +306,10 @@ p.q-text{font-family:var(--f-body);font-weight:500;font-size:18.5px;line-height:
 .gate-err{color:var(--bad);font-size:14px;min-height:1em;margin:-4px 0 0!important}
 #gate{overflow:auto}
 .gate-head{display:flex;align-items:center;justify-content:space-between}
+/* Premium theme window */
+.swatches{display:flex;gap:12px;flex-wrap:wrap}
+.sw{width:44px;height:44px;border-radius:50%;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ink)}
 .gate-x{border:0;background:none;font-size:26px;line-height:1;color:var(--muted);cursor:pointer;padding:2px 8px;border-radius:8px}
 .gate-x:hover{background:var(--bg);color:var(--ink)}
 #gateNote{margin:-6px 0 0;color:var(--ink);font-size:14.5px}
@@ -357,6 +352,7 @@ p.q-text{font-family:var(--f-body);font-weight:500;font-size:18.5px;line-height:
       <button type="button" id="loginBtn" class="btn sm" data-i18n="loginTop"></button>
       <div id="userBox" class="userbox" hidden>
         <a id="adminLink" class="linkbtn" href="/admin" hidden>Admin</a>
+        <button type="button" id="themeBtn" class="linkbtn" data-i18n="themeBtn" hidden></button>
         <button type="button" id="logoutBtn" class="linkbtn" data-i18n="logout"></button>
       </div>
       <div class="lang" role="group" aria-label="Langue / Language">
@@ -478,6 +474,12 @@ p.q-text{font-family:var(--f-body);font-weight:500;font-size:18.5px;line-height:
 </main>
 
 <div id="dlg" class="dlg" hidden><div class="dlg-box" role="dialog" aria-modal="true" aria-labelledby="dlgText"><p id="dlgText"></p><div id="dlgBtns" class="dlg-btns"></div></div></div>
+<div id="themeDlg" class="dlg" hidden><div class="dlg-box" role="dialog" aria-modal="true" aria-labelledby="themeTitle">
+  <div class="gate-head"><strong id="themeTitle" data-i18n="themeTitle" style="font-family:var(--f-display);font-size:20px"></strong><button type="button" id="themeClose" class="gate-x" aria-label="Fermer">×</button></div>
+  <div class="afield"><span data-i18n="themeMode"></span><div id="themeMode" class="seg" role="group"><button type="button" data-dark="0" data-i18n="themeLight"></button><button type="button" data-dark="1" data-i18n="themeDark"></button></div></div>
+  <div class="afield"><span data-i18n="themeAccent"></span><div id="themeAccents" class="swatches" role="group"></div></div>
+  <p class="subhint" data-i18n="themeNote"></p>
+</div></div>
 <div id="gate" class="dlg" hidden><div class="dlg-box auth" role="dialog" aria-modal="true" aria-label="QuizMyNotes">
   <div class="gate-head">
     <div class="brand" style="pointer-events:none"><span class="mark" aria-hidden="true"><svg viewBox="0 0 100 100" width="100%" height="100%"><defs><linearGradient id="qmnGate" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2B7BE0"/><stop offset="1" stop-color="#14509F"/></linearGradient></defs><rect width="100" height="100" rx="24" fill="url(#qmnGate)"/><path d="M14 53 H28 L35 36 L43 69 L49 53" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M49 53 L57 63 L86 31" fill="none" stroke="#3DE0A8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="brand-name">QuizMyNotes</span></div>
@@ -585,6 +587,8 @@ fr:{
   k_qcm:'QCM (une réponse)', k_qcm_multi:'QCM (une ou plusieurs réponses)', k_vf:'Vrai / Faux', k_trous:'Texte à trous', k_courte:'Réponse courte', k_redaction:'Question rédactionnelle', k_cas:'Cas clinique',
   ks_qcm:'QCM', ks_qcm_multi:'QCM', ks_vf:'Vrai / Faux', ks_trous:'À trous', ks_courte:'Courte', ks_redaction:'Rédaction', ks_cas:'Cas clinique',
   vTrue:'Vrai', vFalse:'Faux',
+  themeBtn:'Thème', themeTitle:'Ton thème', themeMode:'Mode', themeLight:'Clair', themeDark:'Sombre', themeAccent:'Deuxième couleur', themeNote:'Option Premium, enregistrée sur ton compte.',
+  eMediaSoon:'Les vidéos et audios arrivent bientôt sur ton compte Premium.',
   loginTop:'Se connecter', needLogin:'Connecte toi ou crée un compte pour générer un test.',
   tabLogin:'Connexion', tabSignup:'Créer un compte', email:'Email', password:'Mot de passe', fullName:'Prénom et nom', pwHint:'8 caractères minimum',
   loginBtn:'Se connecter', signupBtn:'Demander un compte', logout:'Déconnexion', working:'Un instant…',
@@ -672,6 +676,8 @@ en:{
   k_qcm:'MCQ (single answer)', k_qcm_multi:'MCQ (one or more answers)', k_vf:'True / False', k_trous:'Fill in the blanks', k_courte:'Short answer', k_redaction:'Written answer', k_cas:'Clinical case',
   ks_qcm:'MCQ', ks_qcm_multi:'MCQ', ks_vf:'True / False', ks_trous:'Blanks', ks_courte:'Short', ks_redaction:'Written', ks_cas:'Clinical case',
   vTrue:'True', vFalse:'False',
+  themeBtn:'Theme', themeTitle:'Your theme', themeMode:'Mode', themeLight:'Light', themeDark:'Dark', themeAccent:'Second color', themeNote:'Premium option, saved on your account.',
+  eMediaSoon:'Video and audio are coming soon to your Premium account.',
   loginTop:'Log in', needLogin:'Log in or create an account to generate a test.',
   tabLogin:'Log in', tabSignup:'Create an account', email:'Email', password:'Password', fullName:'First and last name', pwHint:'At least 8 characters',
   loginBtn:'Log in', signupBtn:'Request an account', logout:'Log out', working:'One moment…',
@@ -932,7 +938,7 @@ async function toJpeg(file){
 async function readAny(file){
   const ext = extOf(file.name);
   const type = file.type || '';
-  if (type.startsWith('video/') || type.startsWith('audio/') || ['mp4','mov','avi','mkv','mp3','wav','m4a','aac','ogg','webm'].includes(ext)) throw {i18n:'eMedia'};
+  if (type.startsWith('video/') || type.startsWith('audio/') || ['mp4','mov','avi','mkv','mp3','wav','m4a','aac','ogg','webm'].includes(ext)) throw {i18n: (S.user && S.user.plan === 'premium') ? 'eMediaSoon' : 'eMedia'};
   if (['doc','ppt','xls','pps'].includes(ext)) throw {i18n:'eOld'};
   if (ext === 'pdf' || type === 'application/pdf') return readPdf(await file.arrayBuffer());
   if (ext === 'docx') return readDocx(await file.arrayBuffer());
@@ -1025,12 +1031,14 @@ function updateGenHint(){
   btn.disabled = S.sample === null || !ready || reading || !!S.genCtl || over;
   $('#genHint').textContent = S.sample === null ? '' : over ? t('trialEnded') : reading ? t('waitFiles') : !ready ? t('needFiles') : '';
 }
-function trialOver(){ return !!(S.user && S.user.trialEnd <= Date.now()); }
+function trialOver(){ return !!(S.user && S.user.plan !== 'premium' && S.user.trialEnd <= Date.now()); }
 function renderUser(){
   const u = S.user;
   $('#userBox').hidden = !u;
   $('#loginBtn').hidden = !!u;
   $('#adminLink').hidden = !(u && u.isAdmin);
+  $('#themeBtn').hidden = !(u && u.plan === 'premium');
+  if (u || S.authChecked) applyTheme(u && u.plan === 'premium' ? u.theme : null);
   $('#trialBanner').hidden = !trialOver();
 }
 function applyI18n(){
@@ -1779,6 +1787,49 @@ const AI = {
 S.sample = AI;
 S.maxImages = 10;
 
+/* ---------- Premium theme ---------- */
+const ACCENTS = {
+  green: { light: '#0B9470', dark: '#3CCB9E', fr: 'Vert', en: 'Green' },
+  violet: { light: '#7445D8', dark: '#A88BF5', fr: 'Violet', en: 'Purple' },
+  pink: { light: '#C93A72', dark: '#F07AA8', fr: 'Rose', en: 'Pink' },
+  orange: { light: '#B85A0E', dark: '#F0A15C', fr: 'Orange', en: 'Orange' },
+  teal: { light: '#0B8494', dark: '#4DCFDC', fr: 'Turquoise', en: 'Teal' }
+};
+function applyTheme(t){
+  const r = document.documentElement;
+  ['--green', '--green-soft', '--grid'].forEach(k => r.style.removeProperty(k));
+  if (!t){ delete r.dataset.theme; try { localStorage.removeItem('qmn.theme'); } catch {} return; }
+  r.dataset.theme = t.dark ? 'dark' : 'light';
+  const a = ACCENTS[t.accent] || ACCENTS.green;
+  if (t.accent && t.accent !== 'green'){
+    const c = t.dark ? a.dark : a.light;
+    r.style.setProperty('--green', c);
+    r.style.setProperty('--green-soft', 'color-mix(in srgb, ' + c + ' 14%, var(--surface))');
+    r.style.setProperty('--grid', 'color-mix(in srgb, ' + c + ' 7%, transparent)');
+  }
+  try { localStorage.setItem('qmn.theme', JSON.stringify(t)); } catch {}
+}
+function renderThemeDlg(){
+  const t = (S.user && S.user.theme) || { dark: false, accent: 'green' };
+  $('#themeMode').querySelectorAll('[data-dark]').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.dark === '1') === !!t.dark)));
+  $('#themeAccents').innerHTML = Object.entries(ACCENTS).map(([k, a]) =>
+    '<button type="button" class="sw" data-accent="' + k + '" aria-label="' + a[S.lang] + '" aria-pressed="' + (t.accent === k) + '" style="background:' + (t.dark ? a.dark : a.light) + '"></button>').join('');
+}
+async function saveTheme(t){
+  if (!S.user) return;
+  S.user.theme = t; applyTheme(t); renderThemeDlg();
+  const j = await authCall({ action: 'theme', dark: t.dark, accent: t.accent });
+  if (j.error) toast(errMsg({ code: j.error }));
+}
+$('#themeBtn').onclick = () => { renderThemeDlg(); $('#themeDlg').hidden = false; };
+$('#themeClose').onclick = () => { $('#themeDlg').hidden = true; };
+$('#themeDlg').addEventListener('click', e => { if (e.target === $('#themeDlg')) $('#themeDlg').hidden = true; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#themeDlg').hidden) $('#themeDlg').hidden = true; });
+$('#themeMode').addEventListener('click', e => { const b = e.target.closest('[data-dark]'); if (b) saveTheme({ ...((S.user && S.user.theme) || { accent: 'green' }), dark: b.dataset.dark === '1' }); });
+$('#themeAccents').addEventListener('click', e => { const b = e.target.closest('[data-accent]'); if (b) saveTheme({ ...((S.user && S.user.theme) || { dark: false }), accent: b.dataset.accent }); });
+// Show the last saved Premium theme right away, until the account is checked.
+try { const saved = JSON.parse(localStorage.getItem('qmn.theme') || 'null'); if (saved && getTok()) applyTheme(saved); } catch {}
+
 /* ---------- accounts ---------- */
 function authTab(tab){
   $('#authTabs').querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === tab)));
@@ -1851,15 +1902,17 @@ $('#logoutBtn').onclick = async () => {
 };
 (async () => {
   renderUser();
-  if (!getTok()) return;
+  if (!getTok()) { S.authChecked = true; renderUser(); return; }
   try {
     const r = await fetch('/api/auth', { headers: authHeaders() });
     let j = {}; try { j = await r.json(); } catch {}
+    S.authChecked = true;
     if (r.status === 401) { signOut(); return; }
     if (r.status === 403) { showGate(errMsg({ code: j.error })); return; }
     if (r.ok && j.user) setUser(j.user);
     else if (j.error) toast(errMsg({ code: j.error }));
   } catch { toast(t('eNetwork')); }
+  S.authChecked = true;
 })();
 renderMeter();
 </script>

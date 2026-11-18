@@ -39,6 +39,13 @@ export async function POST(request) {
     switch (b.action) {
       case 'approve':
         await db('HSET', key, 'status', 'active', 'approved', now, 'trialEnd', now + TRIAL_DAYS * DAY_MS);
+        if (b.plan === 'premium') await db('HSET', key, 'plan', 'premium');
+        break;
+      case 'premium':
+        await db('HSET', key, 'plan', 'premium');
+        break;
+      case 'standard':
+        await db('HSET', key, 'plan', 'standard');
         break;
       case 'refuse':
         await db('HSET', key, 'status', 'refused');
@@ -115,7 +122,7 @@ async function list() {
     users: users.map(u => {
       const p = per[u.email] || { tests7: 0, tests28: 0, usd30: 0, weeks: new Set() };
       return {
-        name: u.name, email: u.email, status: u.status,
+        name: u.name, email: u.email, status: u.status, plan: u.plan === 'premium' ? 'premium' : 'standard',
         created: Number(u.created) || 0, approved: Number(u.approved) || 0,
         trialEnd: Number(u.trialEnd) || 0, lastSeen: Number(u.lastSeen) || 0,
         tests7: p.tests7, tests28: p.tests28, usd30: Math.round(p.usd30 * 10000) / 10000, weeks4: p.weeks.size

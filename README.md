@@ -19,7 +19,8 @@ package.json, README.md
 3. You log in with your admin account, click Admin at the top (or open /admin) and click "Valider". The trial (30 days by default) starts at that moment.
 4. You tell the student they can log in.
 5. When the trial ends, the student can still log in but cannot generate tests. On /admin, "+30 jours" extends it.
-6. Forgotten password: on /admin click "Nouveau mot de passe" and send them the temporary one.
+6. Premium: on /admin, "Passer Premium" (or "Valider en Premium" for a new request) gives full access with no trial end, plus the hidden Theme option (dark mode and a second color). "Retirer Premium" takes it back.
+7. Forgotten password: on /admin click "Nouveau mot de passe" and send them the temporary one.
 
 ## Setup on Vercel
 1. Put all the files in a GitHub repo (keep the api and lib folders) and import it into Vercel.
@@ -31,6 +32,7 @@ package.json, README.md
    CLAUDE_MODEL (optional) : defaults to claude-sonnet-5-5
    TRIAL_DAYS (optional) : defaults to 30
    DAILY_USER_USD (optional) : max spend per student per day, defaults to 1
+   DAILY_PREMIUM_USD (optional) : max spend per Premium account per day, defaults to 3
    DAILY_TOTAL_USD (optional) : max spend for everyone per day, defaults to 15
    PRICE_IN_PER_MTOK and PRICE_OUT_PER_MTOK (optional) : model prices in USD per million tokens, default 2 and 10 (Sonnet 5.5). Change them if you change the model.
    SIGNUPS_OPEN (optional) : set to false to close sign ups

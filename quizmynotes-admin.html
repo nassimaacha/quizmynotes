@@ -27,7 +27,7 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .tbl{overflow-x:auto}
 .pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px}
 .s-active{background:var(--green-soft);color:var(--green)}.s-pending{background:var(--warn-soft);color:var(--warn)}
-.s-refused,.s-disabled{background:var(--bad-soft);color:var(--bad)}.s-ended{background:var(--bad-soft);color:var(--bad)}
+.s-refused,.s-disabled{background:var(--bad-soft);color:var(--bad)}.s-premium{background:#EFE8FC;color:#5B34B8}.s-ended{background:var(--bad-soft);color:var(--bad)}
 .muted{color:var(--muted);font-size:13px}
 .big{font-size:34px;font-weight:800;line-height:1}
 .kpis{display:flex;gap:14px;flex-wrap:wrap}
@@ -116,7 +116,7 @@ async function load(){
 }
 
 function status(u){
-  if (u.status === 'active' && u.trialEnd <= Date.now()) return ['ended', 'essai terminé'];
+  if (u.status === 'active' && u.plan !== 'premium' && u.trialEnd <= Date.now()) return ['ended', 'essai terminé'];
   return [u.status, { active: 'actif', pending: 'en attente', refused: 'refusé', disabled: 'désactivé' }[u.status] || u.status];
 }
 
@@ -136,16 +136,19 @@ function render(){
   $('#pendCount').textContent = pend.length ? '(' + pend.length + ')' : '';
   $('#pending').innerHTML = pend.length ? pend.map(function(u){
     return '<div class="pitem"><div><b>' + esc(u.name) + '</b><div class="muted">' + esc(u.email) + ' · demandé le ' + esc(dt(u.created)) + '</div></div>' +
-      '<div class="acts"><button class="btn go" data-a="approve" data-e="' + esc(u.email) + '">Valider (' + data.trialDays + ' jours d’essai)</button><button class="btn bad" data-a="refuse" data-e="' + esc(u.email) + '">Refuser</button></div></div>';
+      '<div class="acts"><button class="btn go" data-a="approve" data-e="' + esc(u.email) + '">Valider (' + data.trialDays + ' jours d’essai)</button><button class="btn" data-a="approve-premium" data-e="' + esc(u.email) + '">Valider en Premium</button><button class="btn bad" data-a="refuse" data-e="' + esc(u.email) + '">Refuser</button></div></div>';
   }).join('') : '<p class="muted">Aucune demande.</p>';
 
   var rest = data.users.filter(function(u){ return u.status !== 'pending'; });
-  $('#users').innerHTML = '<tr><th>Nom</th><th>Statut</th><th>Fin d’essai</th><th>Tests 7 j</th><th>Tests 28 j</th><th>Semaines actives /4</th><th>Coût 30 j</th><th>Vu le</th><th></th></tr>' +
+  $('#users').innerHTML = '<tr><th>Nom</th><th>Statut</th><th>Formule</th><th>Fin d’essai</th><th>Tests 7 j</th><th>Tests 28 j</th><th>Semaines actives /4</th><th>Coût 30 j</th><th>Vu le</th><th></th></tr>' +
     (rest.length ? rest.map(function(u){
       var s = status(u);
       var left = u.trialEnd ? Math.ceil((u.trialEnd - Date.now()) / DAY) : 0;
       var acts = '';
-      if (u.status === 'active') acts += '<button class="btn" data-a="extend" data-e="' + esc(u.email) + '">+30 jours</button>';
+      var prem = u.plan === 'premium';
+      if (u.status === 'active' && !prem) acts += '<button class="btn" data-a="premium" data-e="' + esc(u.email) + '">Passer Premium</button>';
+      if (prem) acts += '<button class="btn" data-a="standard" data-e="' + esc(u.email) + '">Retirer Premium</button>';
+      if (u.status === 'active' && !prem) acts += '<button class="btn" data-a="extend" data-e="' + esc(u.email) + '">+30 jours</button>';
       if (u.status === 'active') acts += '<button class="btn" data-a="reset" data-e="' + esc(u.email) + '">Nouveau mot de passe</button>';
       if (u.status === 'active') acts += '<button class="btn bad" data-a="disable" data-e="' + esc(u.email) + '">Désactiver</button>';
       if (u.status === 'disabled') acts += '<button class="btn" data-a="enable" data-e="' + esc(u.email) + '">Réactiver</button>';
@@ -153,11 +156,12 @@ function render(){
       acts += '<button class="btn bad" data-a="delete" data-e="' + esc(u.email) + '">Supprimer</button>';
       return '<tr><td><b>' + esc(u.name) + '</b><div class="muted">' + esc(u.email) + '</div></td>' +
         '<td><span class="pill s-' + s[0] + '">' + s[1] + '</span></td>' +
-        '<td class="num">' + (u.trialEnd ? esc(d(u.trialEnd)) + '<div class="muted">' + (left > 0 ? left + ' j restants' : 'terminé') + '</div>' : '·') + '</td>' +
+        '<td>' + (prem ? '<span class="pill s-premium">Premium</span>' : '<span class="muted">Essai</span>') + '</td>' +
+        '<td class="num">' + (prem ? '<span class="muted">sans limite</span>' : u.trialEnd ? esc(d(u.trialEnd)) + '<div class="muted">' + (left > 0 ? left + ' j restants' : 'terminé') + '</div>' : '·') + '</td>' +
         '<td class="num">' + u.tests7 + '</td><td class="num">' + u.tests28 + '</td><td class="num">' + u.weeks4 + '</td>' +
         '<td class="num">' + usd(u.usd30) + '</td><td class="num">' + esc(dt(u.lastSeen)) + '</td>' +
         '<td><div class="acts">' + acts + '</div></td></tr>';
-    }).join('') : '<tr><td colspan="9" class="muted">Aucun compte pour l’instant.</td></tr>');
+    }).join('') : '<tr><td colspan="10" class="muted">Aucun compte pour l’instant.</td></tr>');
 }
 
 document.addEventListener('click', async function(e){
@@ -168,9 +172,10 @@ document.addEventListener('click', async function(e){
   if (a === 'disable' && !confirm('Désactiver le compte de ' + u.name + ' ?')) return;
   b.disabled = true;
   try {
-    var r = await api(a, { email: email, days: 30 });
+    var r = a === 'approve-premium' ? await api('approve', { email: email, plan: 'premium' }) : await api(a, { email: email, days: 30 });
     if (a === 'reset') showNotice('Nouveau mot de passe pour <b>' + esc(u.name) + '</b> : <code>' + esc(r.password) + '</code><br><span class="muted">Envoie le lui. Ses anciennes connexions sont fermées.</span>');
-    else if (a === 'approve') showNotice('<b>' + esc(u.name) + '</b> est validé(e). Préviens la personne qu’elle peut se connecter avec ' + esc(email) + '.');
+    else if (a === 'premium') showNotice('<b>' + esc(u.name) + '</b> est maintenant Premium : accès complet, sans fin d’essai.');
+    else if (a === 'approve' || a === 'approve-premium') showNotice('<b>' + esc(u.name) + '</b> est validé(e). Préviens la personne qu’elle peut se connecter avec ' + esc(email) + '.');
     await load();
   } catch(err){
     b.disabled = false;
