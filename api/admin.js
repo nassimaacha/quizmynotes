@@ -1,19 +1,32 @@
 // QuizMyNotes: admin actions (approve accounts, extend trials, reset passwords, pilot stats).
-// Protected by ADMIN_PASSWORD. The page itself is quizmynotes-admin.html, served at /admin.
+// Open to the admin account (ADMIN_EMAIL, logged in) or to ADMIN_PASSWORD.
+// The page itself is quizmynotes-admin.html, served at /admin.
 import {
   db, pipe, hasDb, json, same, obj, getUser, cleanEmail, hashPw, tempPassword,
-  endAllSessions, forgetUsage, lastDays, weekOf, DAY_MS, TRIAL_DAYS, DAILY_USER_USD, DAILY_TOTAL_USD
+  endAllSessions, forgetUsage, lastDays, weekOf, DAY_MS, TRIAL_DAYS, DAILY_USER_USD, DAILY_TOTAL_USD,
+  authUser, bearer, ADMIN_EMAIL
 } from '../lib/store.js';
 
+// Who may use the admin page: the admin account's session, or the admin password.
+async function isAdmin(request) {
+  if (bearer(request)) {
+    const a = await authUser(request);
+    if (!a.error && a.user.email === ADMIN_EMAIL) return true;
+  }
+  const pw = request.headers.get('x-admin-password');
+  if (pw && process.env.ADMIN_PASSWORD) {
+    if (same(pw, process.env.ADMIN_PASSWORD)) return true;
+    await pipe([['INCR', 'afail'], ['EXPIRE', 'afail', 900]]);
+  }
+  return false;
+}
+
 export async function POST(request) {
-  if (!process.env.ADMIN_PASSWORD || !hasDb()) return json({ error: 'not_configured' }, 500);
+  if (!hasDb()) return json({ error: 'not_configured' }, 500);
   try {
     const fails = Number(await db('GET', 'afail')) || 0;
     if (fails >= 20) return json({ error: 'too_many_attempts' }, 429);
-    if (!same(request.headers.get('x-admin-password'), process.env.ADMIN_PASSWORD)) {
-      await pipe([['INCR', 'afail'], ['EXPIRE', 'afail', 900]]);
-      return json({ error: 'unauthorized' }, 401);
-    }
+    if (!(await isAdmin(request))) return json({ error: 'unauthorized' }, 401);
     let b;
     try { b = await request.json(); } catch { return json({ error: 'invalid_request' }, 400); }
     if (b.action === 'list') return json(await list());

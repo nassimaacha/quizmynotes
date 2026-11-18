@@ -7,7 +7,7 @@ import {
 
 const API_URL = 'https://api.anthropic.com/v1/messages';
 const MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-5-5';
-const MARK = '\n[[STETHO:';
+const MARK = '\n[[QMN:';
 const MAX_PROMPT_CHARS = 400000;
 const MAX_GRADE_CHARS = 60000;
 const MAX_IMAGES = 12;
@@ -15,8 +15,9 @@ const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif
 
 export const config = { maxDuration: 300 };
 
-function fail(code, status, message) {
-  return Response.json({ error: code, message: message || code }, { status, headers: { 'cache-control': 'no-store' } });
+// Only a short code goes to the browser; details stay in the Vercel logs.
+function fail(code, status) {
+  return Response.json({ error: code }, { status, headers: { 'cache-control': 'no-store' } });
 }
 
 export async function POST(request) {

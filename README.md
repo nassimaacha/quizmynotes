@@ -10,12 +10,13 @@ api/auth.js : sign up, log in, log out
 api/admin.js : approve accounts, extend trials, reset passwords, pilot stats
 lib/store.js : shared code (database, passwords, sessions, usage)
 vercel.json : maps / to quizmynotes.html and /admin to quizmynotes-admin.html
+favicon.svg, apple-touch-icon.png, og.png : logo, phone icon and link preview image
 package.json, README.md
 
 ## How accounts work
 1. A student opens the site, clicks "Créer un compte" and enters name, email and password.
 2. The account is "en attente". They cannot log in yet.
-3. You open /admin, enter ADMIN_PASSWORD and click "Valider". The trial (30 days by default) starts at that moment.
+3. You log in with your admin account, click Admin at the top (or open /admin) and click "Valider". The trial (30 days by default) starts at that moment.
 4. You tell the student they can log in.
 5. When the trial ends, the student can still log in but cannot generate tests. On /admin, "+30 jours" extends it.
 6. Forgotten password: on /admin click "Nouveau mot de passe" and send them the temporary one.
@@ -25,7 +26,8 @@ package.json, README.md
 2. Database: in the Vercel project open Storage (or Marketplace), add "Upstash for Redis", create a free database and connect it to this project. This adds KV_REST_API_URL and KV_REST_API_TOKEN by itself.
 3. Project > Settings > Environment Variables:
    ANTHROPIC_API_KEY : your key from console.anthropic.com
-   ADMIN_PASSWORD : a long password for /admin (only you)
+   ADMIN_EMAIL (optional) : the account that can open /admin when logged in, defaults to nassimaacha@gmail.com
+   ADMIN_PASSWORD (optional) : a backup password for /admin
    CLAUDE_MODEL (optional) : defaults to claude-sonnet-5-5
    TRIAL_DAYS (optional) : defaults to 30
    DAILY_USER_USD (optional) : max spend per student per day, defaults to 1

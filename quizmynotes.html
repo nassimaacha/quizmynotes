@@ -3,7 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QuizMyNotes</title>
+<title>QuizMyNotes : transforme tes cours en test</title>
+<meta name="description" content="Dépose tes cours, QuizMyNotes en fait un test au format de tes examens (QCM, cas cliniques, note sur 20) et te corrige.">
+<meta name="theme-color" content="#1C63CC">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="QuizMyNotes">
+<meta property="og:description" content="Transforme tes cours en test. QCM, cas cliniques, note sur 20, correction détaillée.">
+<meta property="og:image" content="https://quizmynotesapp.vercel.app/og.png">
+<meta property="og:url" content="https://quizmynotesapp.vercel.app/">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
@@ -68,7 +78,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}
-.mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--green));display:grid;place-items:center;box-shadow:var(--shadow)}
+.mark{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;box-shadow:var(--shadow)}
 .brand-name{font-family:var(--f-display);font-weight:800;font-size:22px;line-height:1}
 .brand-tag{font-size:12.5px;color:var(--muted);line-height:1.2;margin-top:3px}
 .ecg{display:block;margin-top:2px}
@@ -337,16 +347,16 @@ p.q-text{font-family:var(--f-body);font-weight:500;font-size:18.5px;line-height:
   <div class="wrap">
     <a class="brand" href="#" id="homeLink" aria-label="QuizMyNotes">
       <span class="mark" aria-hidden="true">
-        <svg width="18" height="18" viewBox="0 0 18 18"><path d="M6.5 1.5h5v5h5v5h-5v5h-5v-5h-5v-5h5z" fill="#fff"/></svg>
+        <svg viewBox="0 0 100 100" width="100%" height="100%"><defs><linearGradient id="qmnHead" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2B7BE0"/><stop offset="1" stop-color="#14509F"/></linearGradient></defs><rect width="100" height="100" rx="24" fill="url(#qmnHead)"/><path d="M14 53 H28 L35 36 L43 69 L49 53" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M49 53 L57 63 L86 31" fill="none" stroke="#3DE0A8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </span>
       <span>
         <span class="brand-name">QuizMyNotes</span>
-        <svg class="ecg" width="118" height="12" viewBox="0 0 118 12" aria-hidden="true"><path d="M1 7h30l4-5 4 9 4-10 3 6h30l3-3 3 3h35"/><circle cx="43" cy="1.5" r="1.6"/></svg>
       </span>
     </a>
     <div class="top-actions">
       <button type="button" id="loginBtn" class="btn sm" data-i18n="loginTop"></button>
       <div id="userBox" class="userbox" hidden>
+        <a id="adminLink" class="linkbtn" href="/admin" hidden>Admin</a>
         <button type="button" id="logoutBtn" class="linkbtn" data-i18n="logout"></button>
       </div>
       <div class="lang" role="group" aria-label="Langue / Language">
@@ -470,7 +480,7 @@ p.q-text{font-family:var(--f-body);font-weight:500;font-size:18.5px;line-height:
 <div id="dlg" class="dlg" hidden><div class="dlg-box" role="dialog" aria-modal="true" aria-labelledby="dlgText"><p id="dlgText"></p><div id="dlgBtns" class="dlg-btns"></div></div></div>
 <div id="gate" class="dlg" hidden><div class="dlg-box auth" role="dialog" aria-modal="true" aria-label="QuizMyNotes">
   <div class="gate-head">
-    <div class="brand" style="pointer-events:none"><span class="mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M6.5 1.5h5v5h5v5h-5v5h-5v-5h-5v-5h5z" fill="#fff"/></svg></span><span class="brand-name">QuizMyNotes</span></div>
+    <div class="brand" style="pointer-events:none"><span class="mark" aria-hidden="true"><svg viewBox="0 0 100 100" width="100%" height="100%"><defs><linearGradient id="qmnGate" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2B7BE0"/><stop offset="1" stop-color="#14509F"/></linearGradient></defs><rect width="100" height="100" rx="24" fill="url(#qmnGate)"/><path d="M14 53 H28 L35 36 L43 69 L49 53" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M49 53 L57 63 L86 31" fill="none" stroke="#3DE0A8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="brand-name">QuizMyNotes</span></div>
     <button type="button" id="gateClose" class="gate-x" aria-label="Fermer">×</button>
   </div>
   <p id="gateNote" class="subhint" hidden></p>
@@ -508,8 +518,8 @@ p.q-text{font-family:var(--f-body);font-weight:500;font-size:18.5px;line-height:
 const I18N = {
 fr:{
   heroTitle:'Transforme tes cours en <em>test</em>.',
-  heroSub:'Dépose tes PDF, Word, PowerPoint ou photos de notes, choisis tes types de questions. Claude écrit un test tiré uniquement de tes documents, puis te corrige.',
-  noSample:'Ouvre cette page dans Claude (claude.ai ou l’application) pour générer des tests. Elle utilise ton propre compte Claude.',
+  heroSub:'Dépose tes PDF, Word, PowerPoint ou photos de notes, choisis tes types de questions. QuizMyNotes écrit un test tiré uniquement de tes documents, puis te corrige.',
+  noSample:'Le service n’est pas disponible pour le moment.',
   step1:'Tes cours', step2:'Ton test',
   dropTitle:'Dépose tes fichiers ici', dropSub:'ou clique pour choisir · PDF, Word, PowerPoint, Excel, texte, photos',
   types:'Types de questions', count:'Nombre de questions', difficulty:'Difficulté',
@@ -529,10 +539,10 @@ fr:{
   eHeic:'Photo illisible ici. Convertis la en JPG.', eType:'Type de fichier non pris en charge.',
   eLib:'Lecteur de fichiers indisponible. Vérifie ta connexion et réessaie.',
   meterTotal:'{c} caractères · {i} images au total',
-  meterLong:'Tes documents sont longs : Claude lira des extraits répartis sur tout le contenu. Cible un chapitre pour aller plus en profondeur.',
+  meterLong:'Tes documents sont longs : des extraits répartis sur tout le contenu seront lus. Cible un chapitre pour aller plus en profondeur.',
   imgsCapped:'Seules les {n} premières images seront lues.',
   imgsNo:'Les images ne peuvent pas être envoyées depuis cette vue : seules les parties texte seront lues.',
-  genReading:'Claude lit tes cours…', genWriting:'Claude écrit les questions',
+  genReading:'Lecture de tes cours…', genWriting:'Écriture des questions',
   genSub:'{a} / {b} questions écrites', genBatch:'partie {a} sur {b}',
   stop:'Arrêter', recent:'Tests récents', noHistory:'Tes tests terminés apparaîtront ici.',
   retake:'Refaire', del:'Supprimer', questions:'Questions',
@@ -543,7 +553,7 @@ fr:{
   vCorrect:'Juste', vPartial:'Partiellement juste', vIncorrect:'Faux', vEmpty:'Sans réponse', vUngraded:'Non corrigée',
   why:'Explication', fromCourse:'Dans ton cours', missing:'Il manquait :', modelAnswer:'Réponse attendue', expected:'Réponse attendue :',
   disc1:'1 discordance : la moitié des points.', discN:'{n} discordances : 0 point.',
-  grading:'Correction en cours…', gradingOpen:'Claude corrige tes réponses rédigées…',
+  grading:'Correction en cours…', gradingOpen:'Correction de tes réponses rédigées…',
   quitConfirm:'Quitter ce test ? Tes réponses seront perdues.', cancel:'Annuler',
   unanswered:'{n} question(s) sans réponse. Rendre la copie quand même ?', handYes:'Rendre',
   finishPractice:'Terminer maintenant ? Les questions non vérifiées seront corrigées.',
@@ -558,13 +568,13 @@ fr:{
   answerKey:'Corrigé', noAnswer:'Pas de réponse', yourAns:'Ta réponse', goodAns:'Bonne réponse',
   legAns:'Répondue', legOk:'Juste', legPart:'Partielle', legBad:'Fausse',
   practiceL:'Entraînement', examL:'Examen',
-  eNotGranted:'L’accès à Claude a été refusé pour cette page. Recharge la page pour réessayer.',
-  eDisabled:'Claude n’est pas disponible sur ce compte.',
+  eNotGranted:'Accès refusé. Recharge la page pour réessayer.',
+  eDisabled:'Le service n’est pas disponible sur ce compte.',
   eRate:'Limite d’utilisation atteinte. Réessaie dans un moment.',
-  eSession:'Ta session a expiré. Reconnecte toi à Claude.',
+  eSession:'Ta session a expiré. Reconnecte toi.',
   eTooLarge:'Trop de contenu d’un coup. Retire un fichier ou cible un chapitre.',
-  eRefused:'Claude n’a pas pu traiter ce contenu.',
-  eJson:'La réponse de Claude était incomplète. Réessaie ou demande moins de questions.',
+  eRefused:'Ce contenu n’a pas pu être traité.',
+  eJson:'La réponse était incomplète. Réessaie ou demande moins de questions.',
   eImage:'Une image n’a pas été acceptée. Essaie une autre photo.',
   eGeneric:'Un problème est survenu. Réessaie.',
   eNoQ:'Aucune question exploitable. Réessaie.',
@@ -589,14 +599,14 @@ fr:{
   eTrialOver:'Ton mois d’essai gratuit est terminé. Contacte la personne qui t’a invité pour continuer à utiliser QuizMyNotes.',
   eQuotaUser:'Tu as atteint ta limite de tests pour aujourd’hui. Reviens demain.', eQuotaGlobal:'QuizMyNotes a atteint sa limite du jour. Reviens demain.',
   eSessionOut:'Ta session a expiré. Reconnecte toi.',
-  eNetwork:'Connexion impossible. Vérifie ton internet et réessaie.', eNoCredits:'Plus de crédits API. Il faut en recharger sur la console Anthropic.',
-  eBadKey:'Clé API invalide. Vérifie ANTHROPIC_API_KEY sur Vercel.', eNotConfigured:'Site pas encore configuré : vérifie ANTHROPIC_API_KEY et la base Redis sur Vercel.',
-  eOverloaded:'Claude est surchargé en ce moment. Réessaie dans une minute.', eBadModel:'Modèle introuvable. Vérifie CLAUDE_MODEL sur Vercel.'
+  eNetwork:'Connexion impossible. Vérifie ton internet et réessaie.', eNoCredits:'Le service est momentanément indisponible. Réessaie plus tard.',
+  eBadKey:'Le service est momentanément indisponible. Réessaie plus tard.', eNotConfigured:'Le service est momentanément indisponible. Réessaie plus tard.',
+  eOverloaded:'Le service est surchargé en ce moment. Réessaie dans une minute.', eBadModel:'Le service est momentanément indisponible. Réessaie plus tard.'
 },
 en:{
   heroTitle:'Turn your lectures into a <em>test</em>.',
-  heroSub:'Drop your PDFs, Word files, slides or photos of notes and pick your question types. Claude writes a test from your documents only, then grades you.',
-  noSample:'Open this page inside Claude (claude.ai or the app) to generate tests. It runs on your own Claude account.',
+  heroSub:'Drop your PDFs, Word files, slides or photos of notes and pick your question types. QuizMyNotes writes a test from your documents only, then grades you.',
+  noSample:'The service is not available right now.',
   step1:'Your lectures', step2:'Your test',
   dropTitle:'Drop your files here', dropSub:'or click to choose · PDF, Word, PowerPoint, Excel, text, photos',
   types:'Question types', count:'Number of questions', difficulty:'Difficulty',
@@ -616,10 +626,10 @@ en:{
   eHeic:'This photo can’t be read here. Convert it to JPG.', eType:'File type not supported.',
   eLib:'File reader unavailable. Check your connection and try again.',
   meterTotal:'{c} characters · {i} images in total',
-  meterLong:'Your documents are long: Claude will read excerpts spread across everything. Focus on a chapter to go deeper.',
+  meterLong:'Your documents are long: excerpts spread across everything will be read. Focus on a chapter to go deeper.',
   imgsCapped:'Only the first {n} images will be read.',
   imgsNo:'Images can’t be sent from this view: only the text parts will be read.',
-  genReading:'Claude is reading your lectures…', genWriting:'Claude is writing the questions',
+  genReading:'Reading your lectures…', genWriting:'Writing the questions',
   genSub:'{a} / {b} questions written', genBatch:'part {a} of {b}',
   stop:'Stop', recent:'Recent tests', noHistory:'Your finished tests will show up here.',
   retake:'Retake', del:'Delete', questions:'Questions',
@@ -630,7 +640,7 @@ en:{
   vCorrect:'Correct', vPartial:'Partly correct', vIncorrect:'Wrong', vEmpty:'No answer', vUngraded:'Not graded',
   why:'Explanation', fromCourse:'In your lecture', missing:'Missing:', modelAnswer:'Expected answer', expected:'Expected answer:',
   disc1:'1 mismatch: half the points.', discN:'{n} mismatches: 0 points.',
-  grading:'Grading…', gradingOpen:'Claude is grading your written answers…',
+  grading:'Grading…', gradingOpen:'Grading your written answers…',
   quitConfirm:'Quit this test? Your answers will be lost.', cancel:'Cancel',
   unanswered:'{n} unanswered question(s). Hand in anyway?', handYes:'Hand in',
   finishPractice:'Finish now? Unchecked questions will be graded.',
@@ -645,13 +655,13 @@ en:{
   answerKey:'Answer key', noAnswer:'No answer', yourAns:'Your answer', goodAns:'Correct answer',
   legAns:'Answered', legOk:'Correct', legPart:'Partial', legBad:'Wrong',
   practiceL:'Practice', examL:'Exam',
-  eNotGranted:'Access to Claude was declined for this page. Reload the page to try again.',
-  eDisabled:'Claude is not available on this account.',
+  eNotGranted:'Access declined. Reload the page to try again.',
+  eDisabled:'The service is not available on this account.',
   eRate:'Usage limit reached. Try again in a while.',
-  eSession:'Your session expired. Sign in to Claude again.',
+  eSession:'Your session expired. Log in again.',
   eTooLarge:'Too much content at once. Remove a file or focus on a chapter.',
-  eRefused:'Claude could not process this content.',
-  eJson:'Claude’s reply was incomplete. Try again or ask for fewer questions.',
+  eRefused:'This content could not be processed.',
+  eJson:'The reply was incomplete. Try again or ask for fewer questions.',
   eImage:'An image was not accepted. Try another photo.',
   eGeneric:'Something went wrong. Try again.',
   eNoQ:'No usable questions came back. Try again.',
@@ -676,9 +686,9 @@ en:{
   eTrialOver:'Your free month is over. Contact the person who invited you to keep using QuizMyNotes.',
   eQuotaUser:'You reached your test limit for today. Come back tomorrow.', eQuotaGlobal:'QuizMyNotes reached its limit for today. Come back tomorrow.',
   eSessionOut:'Your session expired. Log in again.',
-  eNetwork:'Could not connect. Check your internet and try again.', eNoCredits:'Out of API credits. Top up in the Anthropic console.',
-  eBadKey:'Invalid API key. Check ANTHROPIC_API_KEY on Vercel.', eNotConfigured:'Site not set up yet: check ANTHROPIC_API_KEY and the Redis database on Vercel.',
-  eOverloaded:'Claude is overloaded right now. Try again in a minute.', eBadModel:'Model not found. Check CLAUDE_MODEL on Vercel.'
+  eNetwork:'Could not connect. Check your internet and try again.', eNoCredits:'The service is temporarily unavailable. Try again later.',
+  eBadKey:'The service is temporarily unavailable. Try again later.', eNotConfigured:'The service is temporarily unavailable. Try again later.',
+  eOverloaded:'The service is overloaded right now. Try again in a minute.', eBadModel:'The service is temporarily unavailable. Try again later.'
 }};
 
 const KINDS = {
@@ -1020,6 +1030,7 @@ function renderUser(){
   const u = S.user;
   $('#userBox').hidden = !u;
   $('#loginBtn').hidden = !!u;
+  $('#adminLink').hidden = !(u && u.isAdmin);
   $('#trialBanner').hidden = !trialOver();
 }
 function applyI18n(){
@@ -1707,7 +1718,7 @@ async function packImages(blobs){
   }
   return out;
 }
-const STOP = '\n[[STETHO:';
+const STOP = '\n[[QMN:';
 async function callClaude(prompt, opts = {}){
   const { signal, onText, images, maxTokens, purpose, part } = opts;
   const imgs = await packImages(images);
@@ -1733,7 +1744,7 @@ async function callClaude(prompt, opts = {}){
     }
   } catch (e) { throw { code: (signal && signal.aborted) ? 'cancelled' : 'network', text: raw.split(STOP)[0] }; }
   const text = raw.split(STOP)[0];
-  const m = raw.match(/\n\[\[STETHO:([a-z_]+)\]\]/);
+  const m = raw.match(/\n\[\[QMN:([a-z_]+)\]\]/);
   if (m && m[1] !== 'truncated') throw { code: m[1], text };
   if (!text.trim()) throw { code: 'empty_completion' };
   return { text, truncated: !!m };

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>QuizMyNotes Admin</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <style>
 :root{--bg:#F3F8FB;--surface:#fff;--ink:#0C2A3E;--muted:#587285;--line:#D9E6EE;--blue:#1C63CC;--green:#0B9470;--green-soft:#E2F5EE;--blue-soft:#E7F0FC;--bad:#C2413A;--bad-soft:#FBEBEA;--warn:#B97C0B;--warn-soft:#FBF2DF}
 *{box-sizing:border-box}[hidden]{display:none!important}
@@ -42,11 +43,12 @@ code{font-size:15px;background:var(--surface);padding:2px 6px;border-radius:6px;
 <body>
 <div class="wrap">
   <div class="row" style="justify-content:space-between">
-    <h1>QuizMyNotes · Admin</h1>
+    <a href="/" style="display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit"><img src="/favicon.svg" width="36" height="36" alt=""><h1>QuizMyNotes · Admin</h1></a>
     <div class="row"><button class="btn" id="refresh" hidden>Actualiser</button><button class="btn" id="out" hidden>Quitter</button></div>
   </div>
 
   <form class="card row" id="login">
+    <span class="muted" style="flex-basis:100%">Connecte toi sur la page principale avec ton compte admin, ou entre le mot de passe admin.</span>
     <input type="password" id="pw" placeholder="Mot de passe admin" autocomplete="current-password">
     <button class="btn primary" type="submit">Entrer</button>
     <span class="err" id="loginErr"></span>
@@ -89,12 +91,16 @@ function usd(n){ return '$' + (Number(n) || 0).toFixed(2); }
 
 async function api(action, extra){
   var body = Object.assign({ action: action }, extra || {});
-  var r = await fetch('/api/admin', { method: 'POST', headers: { 'content-type': 'application/json', 'x-admin-password': getPw() }, body: JSON.stringify(body) });
+  var h = { 'content-type': 'application/json' };
+  var tok = ''; try { tok = localStorage.getItem('qmn.token') || ''; } catch(e){}
+  if (tok) h.authorization = 'Bearer ' + tok;
+  if (getPw()) h['x-admin-password'] = getPw();
+  var r = await fetch('/api/admin', { method: 'POST', headers: h, body: JSON.stringify(body) });
   var j = {}; try { j = await r.json(); } catch(e){}
   if (!r.ok) throw Object.assign(new Error(j.error || 'error'), { code: j.error || 'error', status: r.status });
   return j;
 }
-var ERR = { unauthorized: 'Mot de passe admin incorrect.', too_many_attempts: 'Trop de tentatives. Réessaie dans 15 minutes.', not_configured: 'ADMIN_PASSWORD ou la base Redis manque sur Vercel.', upstream_error: 'Erreur de la base. Réessaie.' };
+var ERR = { unauthorized: 'Accès refusé : mot de passe incorrect ou compte non admin.', too_many_attempts: 'Trop de tentatives. Réessaie dans 15 minutes.', not_configured: 'ADMIN_PASSWORD ou la base Redis manque sur Vercel.', upstream_error: 'Erreur de la base. Réessaie.' };
 
 async function load(){
   try {
@@ -102,9 +108,10 @@ async function load(){
     $('#login').hidden = true; $('#app').hidden = false; $('#refresh').hidden = false; $('#out').hidden = false;
     render();
   } catch(e){
+    var hadPw = !!getPw();
     if (e.status === 401){ setPw(''); }
     $('#login').hidden = false; $('#app').hidden = true;
-    $('#loginErr').textContent = ERR[e.code] || 'Erreur : ' + e.code;
+    $('#loginErr').textContent = (e.status === 401 && !hadPw) ? '' : (ERR[e.code] || 'Erreur : ' + e.code);
   }
 }
 
@@ -175,7 +182,7 @@ function showNotice(html){ var n = $('#notice'); n.innerHTML = html; n.hidden = 
 $('#login').addEventListener('submit', function(e){ e.preventDefault(); setPw($('#pw').value.trim()); $('#loginErr').textContent = '…'; load(); });
 $('#refresh').onclick = function(){ $('#notice').hidden = true; load(); };
 $('#out').onclick = function(){ setPw(''); location.reload(); };
-if (getPw()) load();
+load();
 </script>
 </body>
 </html>
