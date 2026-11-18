@@ -303,7 +303,11 @@ p.q-text{font-family:var(--f-body);font-weight:500;font-size:18.5px;line-height:
 .dlg-box p{margin:0;font-size:16px}
 .dlg-btns{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
 .gate-err{color:var(--bad);font-size:14px;min-height:1em;margin:-4px 0 0!important}
-#gate{background:var(--bg);overflow:auto}
+#gate{overflow:auto}
+.gate-head{display:flex;align-items:center;justify-content:space-between}
+.gate-x{border:0;background:none;font-size:26px;line-height:1;color:var(--muted);cursor:pointer;padding:2px 8px;border-radius:8px}
+.gate-x:hover{background:var(--bg);color:var(--ink)}
+#gateNote{margin:-6px 0 0;color:var(--ink);font-size:14.5px}
 .auth{gap:16px}
 .aform{display:grid;gap:12px}
 .afield{display:grid;gap:6px;font-weight:600;font-size:14px}
@@ -339,9 +343,8 @@ p.q-text{font-family:var(--f-body);font-weight:500;font-size:18.5px;line-height:
       </span>
     </a>
     <div class="top-actions">
+      <button type="button" id="loginBtn" class="btn sm" data-i18n="loginTop"></button>
       <div id="userBox" class="userbox" hidden>
-        <span id="userName" class="uname"></span>
-        <span id="trialBadge" class="tbadge"></span>
         <button type="button" id="logoutBtn" class="linkbtn" data-i18n="logout"></button>
       </div>
       <div class="lang" role="group" aria-label="Langue / Language">
@@ -464,7 +467,11 @@ p.q-text{font-family:var(--f-body);font-weight:500;font-size:18.5px;line-height:
 
 <div id="dlg" class="dlg" hidden><div class="dlg-box" role="dialog" aria-modal="true" aria-labelledby="dlgText"><p id="dlgText"></p><div id="dlgBtns" class="dlg-btns"></div></div></div>
 <div id="gate" class="dlg" hidden><div class="dlg-box auth" role="dialog" aria-modal="true" aria-label="Stétho">
-  <div class="brand" style="pointer-events:none"><span class="mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M6.5 1.5h5v5h5v5h-5v5h-5v-5h-5v-5h5z" fill="#fff"/></svg></span><span class="brand-name">Stétho</span></div>
+  <div class="gate-head">
+    <div class="brand" style="pointer-events:none"><span class="mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M6.5 1.5h5v5h5v5h-5v5h-5v-5h-5v-5h5z" fill="#fff"/></svg></span><span class="brand-name">Stétho</span></div>
+    <button type="button" id="gateClose" class="gate-x" aria-label="Fermer">×</button>
+  </div>
+  <p id="gateNote" class="subhint" hidden></p>
   <div id="authTabs" class="seg" role="group">
     <button type="button" data-tab="login" aria-pressed="true" data-i18n="tabLogin"></button>
     <button type="button" data-tab="signup" aria-pressed="false" data-i18n="tabSignup"></button>
@@ -566,10 +573,11 @@ fr:{
   k_qcm:'QCM (une réponse)', k_qcm_multi:'QCM (une ou plusieurs réponses)', k_vf:'Vrai / Faux', k_trous:'Texte à trous', k_courte:'Réponse courte', k_redaction:'Question rédactionnelle', k_cas:'Cas clinique',
   ks_qcm:'QCM', ks_qcm_multi:'QCM', ks_vf:'Vrai / Faux', ks_trous:'À trous', ks_courte:'Courte', ks_redaction:'Rédaction', ks_cas:'Cas clinique',
   vTrue:'Vrai', vFalse:'Faux',
+  loginTop:'Se connecter', needLogin:'Connecte toi ou crée un compte pour générer un test.',
   tabLogin:'Connexion', tabSignup:'Créer un compte', email:'Email', password:'Mot de passe', fullName:'Prénom et nom', pwHint:'8 caractères minimum',
   loginBtn:'Se connecter', signupBtn:'Demander un compte', logout:'Déconnexion', working:'Un instant…',
   forgotPw:'Mot de passe oublié ? Demande à la personne qui t’a invité de le réinitialiser.',
-  signupIntro:'Stétho est en test privé. Chaque compte est validé à la main, puis tu as 1 mois d’essai gratuit.',
+  signupIntro:'Stétho est en test privé. Chaque compte est validé à la main.',
   pendingTitle:'Demande envoyée', pendingText:'Ton compte est en attente de validation. Tu pourras te connecter dès qu’il sera activé.', backLogin:'Retour à la connexion',
   aBadLogin:'Email ou mot de passe incorrect.', aPending:'Ton compte est encore en attente de validation.', aRefused:'Ta demande de compte n’a pas été acceptée.',
   aDisabled:'Ce compte est désactivé.', aExists:'Un compte existe déjà avec cet email. Connecte toi.', aBadEmail:'Email invalide.',
@@ -652,10 +660,11 @@ en:{
   k_qcm:'MCQ (single answer)', k_qcm_multi:'MCQ (one or more answers)', k_vf:'True / False', k_trous:'Fill in the blanks', k_courte:'Short answer', k_redaction:'Written answer', k_cas:'Clinical case',
   ks_qcm:'MCQ', ks_qcm_multi:'MCQ', ks_vf:'True / False', ks_trous:'Blanks', ks_courte:'Short', ks_redaction:'Written', ks_cas:'Clinical case',
   vTrue:'True', vFalse:'False',
+  loginTop:'Log in', needLogin:'Log in or create an account to generate a test.',
   tabLogin:'Log in', tabSignup:'Create an account', email:'Email', password:'Password', fullName:'First and last name', pwHint:'At least 8 characters',
   loginBtn:'Log in', signupBtn:'Request an account', logout:'Log out', working:'One moment…',
   forgotPw:'Forgot your password? Ask the person who invited you to reset it.',
-  signupIntro:'Stétho is in private testing. Every account is approved by hand, then you get a 1 month free trial.',
+  signupIntro:'Stétho is in private testing. Every account is approved by hand.',
   pendingTitle:'Request sent', pendingText:'Your account is waiting for approval. You can log in as soon as it is activated.', backLogin:'Back to log in',
   aBadLogin:'Wrong email or password.', aPending:'Your account is still waiting for approval.', aRefused:'Your account request was not accepted.',
   aDisabled:'This account is disabled.', aExists:'An account already exists with this email. Log in instead.', aBadEmail:'Invalid email.',
@@ -1000,13 +1009,8 @@ function trialOver(){ return !!(S.user && S.user.trialEnd <= Date.now()); }
 function renderUser(){
   const u = S.user;
   $('#userBox').hidden = !u;
+  $('#loginBtn').hidden = !!u;
   $('#trialBanner').hidden = !trialOver();
-  if (!u) return;
-  $('#userName').textContent = u.name || u.email;
-  const days = Math.ceil((u.trialEnd - Date.now()) / 864e5);
-  const b = $('#trialBadge');
-  b.textContent = days <= 0 ? t('trialEnded') : days === 1 ? t('trialLast') : t('trialLeft', { n: days });
-  b.className = 'tbadge' + (days <= 0 ? ' over' : days <= 5 ? ' low' : '');
 }
 function applyI18n(){
   document.documentElement.lang = S.lang;
@@ -1161,6 +1165,7 @@ async function generate(){
   if (S.genCtl) return;
   if (S.sample === undefined && S.sampleReady) await S.sampleReady;
   if (!S.sample){ updateGenHint(); return; }
+  if (!S.user){ showGate('', 'login', t('needLogin')); return; }
   const plan = planKinds();
   // shuffle so batches mix kinds
   for (let i = plan.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [plan[i], plan[j]] = [plan[j], plan[i]]; }
@@ -1764,13 +1769,22 @@ function authTab(tab){
   $('#loginErr').textContent = ''; $('#signupErr').textContent = '';
   setTimeout(() => (tab === 'login' ? $('#loginEmail').value ? $('#loginPw') : $('#loginEmail') : $('#suName')).focus(), 30);
 }
-function showGate(err, tab){
-  setTok(''); S.user = null; renderUser();
+// Open the login window. Signs out first only when the session was lost.
+function showGate(err, tab, note){
+  if (err || !S.user){ setTok(''); S.user = null; renderUser(); updateGenHint(); }
   $('#gate').hidden = false;
   authTab(tab || 'login');
   $('#loginPw').value = '';
   $('#loginErr').textContent = err || '';
+  $('#gateNote').textContent = note || '';
+  $('#gateNote').hidden = !note;
 }
+function closeGate(){ $('#gate').hidden = true; }
+function signOut(){ setTok(''); S.user = null; renderUser(); updateGenHint(); }
+$('#loginBtn').onclick = () => showGate();
+$('#gateClose').onclick = closeGate;
+$('#gate').addEventListener('click', e => { if (e.target === $('#gate')) closeGate(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#gate').hidden) closeGate(); });
 function setUser(u){
   S.user = u; renderUser(); updateGenHint();
 }
@@ -1813,14 +1827,16 @@ $('#logoutBtn').onclick = async () => {
     clearInterval(S.tick); S.test = null; show('setup');
   }
   await authCall({ action: 'logout' });
-  showGate();
+  signOut();
 };
 (async () => {
-  if (!getTok()) { showGate(); return; }
+  renderUser();
+  if (!getTok()) return;
   try {
     const r = await fetch('/api/auth', { headers: authHeaders() });
     let j = {}; try { j = await r.json(); } catch {}
-    if (r.status === 401 || r.status === 403) { showGate(r.status === 403 ? errMsg({ code: j.error }) : ''); return; }
+    if (r.status === 401) { signOut(); return; }
+    if (r.status === 403) { showGate(errMsg({ code: j.error })); return; }
     if (r.ok && j.user) setUser(j.user);
     else if (j.error) toast(errMsg({ code: j.error }));
   } catch { toast(t('eNetwork')); }
